@@ -40,7 +40,7 @@ AdhocWifiMac::GetTypeId (void)
     .AddConstructor<AdhocWifiMac> ()
     .AddAttribute ("PositionPacketInterval",
                    "Delay between two position control packet",
-                   TimeValue (MicroSeconds (40000000000)),
+                   TimeValue (MicroSeconds (400000)),
                    MakeTimeAccessor (&AdhocWifiMac::GetPositionPacketInterval,
                                      &AdhocWifiMac::SetPositionPacketInterval),
                    MakeTimeChecker ())
@@ -84,8 +84,12 @@ AdhocWifiMac::DoInitialize (void)
   // Time IntervalBetweenDevices = MicroSeconds(1000);
   // Simulator::Schedule (delay, &AdhocWifiMac::BroadcastPosition, this);
   // delay += IntervalBetweenDevices;
+  // TODO mac address larger than 00:00:00:00:00:14 don't need to broadcast
+  if(m_phy->GetDevice()->GetIfIndex()==0)
+  {
+    Simulator::ScheduleNow (&AdhocWifiMac::BroadcastPosition, this);
+  }
 
-  Simulator::ScheduleNow (&AdhocWifiMac::BroadcastPosition, this);
 }
 
 void
@@ -228,7 +232,7 @@ AdhocWifiMac::BroadcastPosition(void)
       tid = QosUtilsGetTidForPacket (packet);
       if (tid > 7)
       {
-        tid = 0;
+        tid = 7;
       }
       m_edca[QosUtilsMapTidToAc (tid)]->Queue (packet, hdr);
       NS_LOG_DEBUG("qos supported.");

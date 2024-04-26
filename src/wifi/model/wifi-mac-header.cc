@@ -119,13 +119,13 @@ WifiMacHeader::Gettolerate(void)
   return m_toleratepower;
 }
 
-void
+void // Jonathan
 WifiMacHeader::SetPosition(Vector position)
 {
   m_position = position;
 }
 
-Vector
+Vector // Jonathan
 WifiMacHeader::GetPosition()
 {
   return m_position;

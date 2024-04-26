@@ -767,6 +767,7 @@ WifiHelper::Install (const WifiPhyHelper &phyHelper,
       Ptr<WifiPhy> phy = phyHelper.Create (node, device);////////a new PHY object
 	  Ptr<BusytonePhy> btphy = m_busytonehelper.Create(node, device);///liang
       mac->SetAddress (Mac48Address::Allocate ());
+      // NS_LOG_UNCOND(node->GetId() << " " << mac->GetAddress()); // Jonathan
       mac->ConfigureStandard (m_standard);
       phy->ConfigureStandard (m_standard);
 	  ///btphy->ConfigureStandard (m_standard);//////不一定要

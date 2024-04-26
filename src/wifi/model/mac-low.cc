@@ -812,41 +812,68 @@ MacLow::IsAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr)
 }
 
 double // Jonathan
-MacLow::GetDistance(Mac48Address to)
+MacLow::GetDistanceFromTable(Mac48Address to)
 {
-  Ptr<Node> node = m_phy->GetDevice()->GetNode();
-  Ptr<MobilityModel> mob = node->GetObject<MobilityModel>();
-  std::vector<double> pos = GetPositionOfDest(to);
-
-  double distance;
-  distance = std::sqrt(std::pow((mob->GetPosition().x - pos[0]),2) + std::pow((mob->GetPosition().y - pos[1]),2) + std::pow((mob->GetPosition().z - pos[2]),2));
-  std::cout<< distance << " m" << std::endl;
-  return distance;
-
-}
-
-std::vector<double> // Jonathan
-MacLow::GetPositionOfDest(Mac48Address to)
-{
-  std::vector<double> position;
-  // Traverse the table of <macaddress, position> to find the position of destination
-  if(!m_phy->positionlist.empty())
+  if(m_distancetable.find(to)!=m_distancetable.end())
   {
-    for(auto i = m_phy->positionlist.begin(); i != m_phy->positionlist.end(); i++)
-    {
-      if(i->first == to)
-      {
-        position.push_back(i->second.x);
-        position.push_back(i->second.y);
-        position.push_back(i->second.z);
-        break;
-      }
-    }
+    // NS_LOG_UNCOND("Find the distance to " << to << ". " << "Distance: " << m_distancetable[to] << " m." );
+    return m_distancetable[to];
+  }
+  else
+  {
+    // NS_LOG_UNCOND("Node " << m_phy->GetDevice()->GetNode()->GetId() << " can not find the distance to " << to);
+    return 0;
   }
 
-  return position;
 }
 
+void // Jonathan
+MacLow::SaveDistanceToTable(Mac48Address to, double distance)
+{
+  std::vector<double> position;
+  // NS_LOG_UNCOND("Insert MAC Address: " << to << ", Distance: " << distance << " to position table");
+  for (const auto& s : m_distancetable)
+  {
+    // NS_LOG_UNCOND("MAC Address: " << s.first << ", Distance: " << s.second);
+    if(s.first == to)
+    {
+      m_distancetable[s.first] = distance;
+      return;
+    }
+  }
+  m_distancetable.insert(std::pair<Mac48Address, double>(to, distance));
+  // PrintPositionTable();
+  return;
+}
+
+double // Jonathan
+MacLow::CalculateDistance(Vector RxPosition)
+{
+  Ptr<Node> node = m_phy->GetDevice()->GetNode();
+  Vector pos = node->GetObject<MobilityModel>()->GetPosition();
+  double distance;
+  distance = std::sqrt(std::pow((pos.x - RxPosition.x),2) + std::pow((pos.y - RxPosition.y),2) + std::pow((pos.z - RxPosition.z),2));
+  // NS_LOG_UNCOND(distance << " m.");
+  return distance;
+}
+
+void // Jonathan
+MacLow::PrintPositionTable()
+{
+  NS_LOG_UNCOND("Position table of node " << m_phy->GetDevice()->GetNode()->GetId());
+  NS_LOG_UNCOND("-------------------------------------------------------------");
+  for (const auto& s : m_distancetable)
+    NS_LOG_UNCOND("MAC Address: " << s.first << ", Distance: " << s.second);
+  NS_LOG_UNCOND("-------------------------------------------------------------");
+}
+
+bool
+MacLow::InspectTxpower(double distance, double txpower)
+{
+  double RxPower;
+
+  return true;
+}
 
 double
 MacLow::FindTxpower(const WifiMacHeader* hdr)
@@ -1413,7 +1440,11 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiTxVector txVector, bool
   else if (hdr.IsPositionPacket()) // Jonathan
     {
       // NS_LOG_UNCOND("Receive position control packet");
-      // NS_LOG_UNCOND(hdr.GetPosition().x << " " << hdr.GetPosition().y << " " << hdr.GetPosition().z);
+      double distance = CalculateDistance(hdr.GetPosition());
+
+      // Insert distance to the table of distance
+      SaveDistanceToTable(hdr.GetAddr2(), distance);
+
     }
   else if (hdr.IsCtl ())
     {
@@ -1977,7 +2008,7 @@ MacLow::BusytoneIsIdle()
          }
 }
 
-void
+void // Jonathan
 MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxVector txVector)
 {
   NS_LOG_FUNCTION (this << packet << hdr << txVector);
@@ -1996,134 +2027,151 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
     {
       txpower = 0.04;
     }
-    
+    bool IsEnough = true;
     // Jonathan
-    //TODO: Check if Txpower is large enough
-    // double distance;
-    // distance = GetDistance(hdr->GetAddr1 ());
-    // CheckTxpower(distance); // calculate the rxpower
-    
-    // Ptr<PropagationLossModel> loss = YansWifiChannel::GetMLoss();
-    // loss->CalcRxPower (txPowerDbm, senderMobility, receiverMobility);
-
-    //if(m_phy->GetDevice()->GetIfIndex()==0)
-      //std::cout<<txpower<<std::endl;
-  
-    if(txpower > 1 && m_phy->GetDevice()->GetIfIndex()==0)
-      {
-        txVector.AddTxPowerNowIntoVector(0.05);
-      }
-    else if(txpower > 0.1 && m_phy->GetDevice()->GetIfIndex()==0)
-      {
-        //m_phy->SetTxPowerEnd(20);
-        //m_phy->SetTxPowerStart(20);
-        txVector.AddTxPowerNowIntoVector(0.1);
-      }
-    else if(m_phy->GetDevice()->GetIfIndex()==0)
-      {
-        txVector.AddTxPowerNowIntoVector(txpower);
-      }
-    if(hdr->Ispowercontrol())
-      txVector.AddTxPowerNowIntoVector(0.1);
-      //std::cout<<txpower<<std::endl;
-    //if (!m_ampdu)
-      //std::cout<</*m_phy->GetDevice()->GetNode()->GetId()<<*/"   "<<txpower<<std::endl;
-    //if(m_phy->GetDevice()->GetIfIndex()==0)
-      //std::cout<<txVector.GetTxPowerFromVector()<<"\n";
-  if (!m_ampdu || hdr->IsAck () || hdr->IsRts () || hdr->IsCts () || hdr->IsBlockAck () || hdr->IsMgt () || hdr->Ispowercontrol())
-    {///std::cout<<"sendack"<<" "<<Simulator::Now().GetSeconds()<<std::endl;
-
-      m_phy->SendPacket (packet, txVector);
-    }
-  else
+    if(m_phy->GetDevice()->GetIfIndex()==0)
     {
-      Ptr<Packet> newPacket;
-      Ptr <WifiMacQueueItem> dequeuedItem;
-      WifiMacHeader newHdr;
-      uint8_t queueSize = m_aggregateQueue[GetTid (packet, *hdr)]->GetNPackets ();
-      bool singleMpdu = false;
-      bool last = false;
-      MpduType mpdutype = NORMAL_MPDU;
-
-      uint8_t tid = GetTid (packet, *hdr);
-      AcIndex ac = QosUtilsMapTidToAc (tid);
-      std::map<AcIndex, Ptr<EdcaTxopN> >::const_iterator edcaIt = m_edca.find (ac);
-
-      if (queueSize == 1)
-        {
-          singleMpdu = true;
-        }
-
-      //Add packet tag
-      AmpduTag ampdutag;
-      ampdutag.SetAmpdu (true);
-      Time delay = Seconds (0);
-      Time remainingAmpduDuration = m_phy->CalculateTxDuration (packet->GetSize (), txVector, m_phy->GetFrequency ());
-      if (queueSize > 1 || singleMpdu)
-        {
-          txVector.SetAggregation (true);
-        }
-      for (; queueSize > 0; queueSize--)
-        {
-          dequeuedItem = m_aggregateQueue[GetTid (packet, *hdr)]->Dequeue ();
-          newHdr = dequeuedItem->GetHeader ();
-          newPacket = dequeuedItem->GetPacket ()->Copy ();
-          newHdr.SetDuration (hdr->GetDuration ());
-          newPacket->AddHeader (newHdr);
-          AddWifiMacTrailer (newPacket);
-          if (queueSize == 1)
-            {
-              last = true;
-              mpdutype = LAST_MPDU_IN_AGGREGATE;
-            }
-
-          edcaIt->second->GetMpduAggregator ()->AddHeaderAndPad (newPacket, last, singleMpdu);
-
-          if (delay.IsZero ())
-            {
-              if (!singleMpdu)
-                {
-                  NS_LOG_DEBUG ("Sending MPDU as part of A-MPDU");
-                  mpdutype = MPDU_IN_AGGREGATE;
-                }
-              else
-                {
-                  NS_LOG_DEBUG ("Sending S-MPDU");
-                  mpdutype = NORMAL_MPDU;
-                }
-            }
-
-          Time mpduDuration = m_phy->CalculateTxDuration (newPacket->GetSize (), txVector, m_phy->GetFrequency (), mpdutype, 0);
-          remainingAmpduDuration -= mpduDuration;
-
-          ampdutag.SetRemainingNbOfMpdus (queueSize - 1);
-          if (queueSize > 1)
-            {
-              ampdutag.SetRemainingAmpduDuration (remainingAmpduDuration);
-            }
-          else
-            {
-              ampdutag.SetRemainingAmpduDuration (NanoSeconds (0));
-            }
-          newPacket->AddPacketTag (ampdutag);
-
-          if (delay.IsZero ())
-            {///std::cout<<"sendpacket"<<" "<<Simulator::Now().GetSeconds()<<std::endl;
-              m_phy->SendPacket (newPacket, txVector, mpdutype);
-            }
-          else
-            {
-              Simulator::Schedule (delay, &MacLow::SendMpdu, this, newPacket, txVector, mpdutype);
-            }
-          if (queueSize > 1)
-            {
-              NS_ASSERT (remainingAmpduDuration > 0);
-              delay = delay + mpduDuration;
-            }
-
-          txVector.SetPreambleType (WIFI_PREAMBLE_NONE);
-        }
+      //TODO: Check if Txpower is large enough
+      uint32_t nodeid = m_phy->GetDevice()->GetNode()->GetId();
+      // NS_LOG_UNCOND("node " << nodeid);
+      double distance = GetDistanceFromTable(hdr->GetAddr1 ());
+      // bool IsEnough = InspectTxpower(distance, txpower); // calculate the rxpower
+      // NS_LOG_UNCOND("IsEnough " << IsEnough);
     }
+
+
+
+
+    // if(!IsEnough)
+    // {
+    //   ChannelBusy();
+    // }
+    // else
+    // {
+      // Ptr<PropagationLossModel> loss = YansWifiChannel::GetMLoss();
+      // loss->CalcRxPower (txPowerDbm, senderMobility, receiverMobility);
+
+      //if(m_phy->GetDevice()->GetIfIndex()==0)
+        //std::cout<<txpower<<std::endl;
+    
+      if(txpower > 1 && m_phy->GetDevice()->GetIfIndex()==0)
+        {
+          txVector.AddTxPowerNowIntoVector(0.05);
+        }
+      else if(txpower > 0.1 && m_phy->GetDevice()->GetIfIndex()==0)
+        {
+          //m_phy->SetTxPowerEnd(20);
+          //m_phy->SetTxPowerStart(20);
+          txVector.AddTxPowerNowIntoVector(0.1);
+        }
+      else if(m_phy->GetDevice()->GetIfIndex()==0)
+        {
+          txVector.AddTxPowerNowIntoVector(txpower);
+        }
+      if(hdr->Ispowercontrol())
+        txVector.AddTxPowerNowIntoVector(0.1);
+      if(hdr->IsPositionPacket())
+        txVector.AddTxPowerNowIntoVector(0.1);
+        //std::cout<<txpower<<std::endl;
+      //if (!m_ampdu)
+        //std::cout<</*m_phy->GetDevice()->GetNode()->GetId()<<*/"   "<<txpower<<std::endl;
+      //if(m_phy->GetDevice()->GetIfIndex()==0)
+        //std::cout<<txVector.GetTxPowerFromVector()<<"\n";
+      if (!m_ampdu || hdr->IsAck () || hdr->IsRts () || hdr->IsCts () || hdr->IsBlockAck () || hdr->IsMgt () || hdr->Ispowercontrol() || hdr->IsPositionPacket())
+      {///std::cout<<"sendack"<<" "<<Simulator::Now().GetSeconds()<<std::endl;
+        m_phy->SendPacket (packet, txVector);
+      }
+      else
+      {
+        Ptr<Packet> newPacket;
+        Ptr <WifiMacQueueItem> dequeuedItem;
+        WifiMacHeader newHdr;
+        uint8_t queueSize = m_aggregateQueue[GetTid (packet, *hdr)]->GetNPackets ();
+        bool singleMpdu = false;
+        bool last = false;
+        MpduType mpdutype = NORMAL_MPDU;
+
+        uint8_t tid = GetTid (packet, *hdr);
+        AcIndex ac = QosUtilsMapTidToAc (tid);
+        std::map<AcIndex, Ptr<EdcaTxopN> >::const_iterator edcaIt = m_edca.find (ac);
+
+        if (queueSize == 1)
+          {
+            singleMpdu = true;
+          }
+
+        //Add packet tag
+        AmpduTag ampdutag;
+        ampdutag.SetAmpdu (true);
+        Time delay = Seconds (0);
+        Time remainingAmpduDuration = m_phy->CalculateTxDuration (packet->GetSize (), txVector, m_phy->GetFrequency ());
+        if (queueSize > 1 || singleMpdu)
+          {
+            txVector.SetAggregation (true);
+          }
+        for (; queueSize > 0; queueSize--)
+          {
+            dequeuedItem = m_aggregateQueue[GetTid (packet, *hdr)]->Dequeue ();
+            newHdr = dequeuedItem->GetHeader ();
+            newPacket = dequeuedItem->GetPacket ()->Copy ();
+            newHdr.SetDuration (hdr->GetDuration ());
+            newPacket->AddHeader (newHdr);
+            AddWifiMacTrailer (newPacket);
+            if (queueSize == 1)
+              {
+                last = true;
+                mpdutype = LAST_MPDU_IN_AGGREGATE;
+              }
+
+            edcaIt->second->GetMpduAggregator ()->AddHeaderAndPad (newPacket, last, singleMpdu);
+
+            if (delay.IsZero ())
+              {
+                if (!singleMpdu)
+                  {
+                    NS_LOG_DEBUG ("Sending MPDU as part of A-MPDU");
+                    mpdutype = MPDU_IN_AGGREGATE;
+                  }
+                else
+                  {
+                    NS_LOG_DEBUG ("Sending S-MPDU");
+                    mpdutype = NORMAL_MPDU;
+                  }
+              }
+
+            Time mpduDuration = m_phy->CalculateTxDuration (newPacket->GetSize (), txVector, m_phy->GetFrequency (), mpdutype, 0);
+            remainingAmpduDuration -= mpduDuration;
+
+            ampdutag.SetRemainingNbOfMpdus (queueSize - 1);
+            if (queueSize > 1)
+              {
+                ampdutag.SetRemainingAmpduDuration (remainingAmpduDuration);
+              }
+            else
+              {
+                ampdutag.SetRemainingAmpduDuration (NanoSeconds (0));
+              }
+            newPacket->AddPacketTag (ampdutag);
+
+            if (delay.IsZero ())
+              {///std::cout<<"sendpacket"<<" "<<Simulator::Now().GetSeconds()<<std::endl;
+                m_phy->SendPacket (newPacket, txVector, mpdutype);
+              }
+            else
+              {
+                Simulator::Schedule (delay, &MacLow::SendMpdu, this, newPacket, txVector, mpdutype);
+              }
+            if (queueSize > 1)
+              {
+                NS_ASSERT (remainingAmpduDuration > 0);
+                delay = delay + mpduDuration;
+              }
+
+            txVector.SetPreambleType (WIFI_PREAMBLE_NONE);
+          }
+      }
+    // }
+    
 }
 
 double

@@ -612,7 +612,16 @@ public:
   void Setpowerboolean(uint16_t yorn);
   bool ifisgreaterthanzero(void);
 
+  /**
+   * Set the position payload in header
+   * \param position the position of the node.
+   */
   void SetPosition(Vector position); // Jonathan
+
+  /**
+   * Get the position payload in header
+   * \return m_position
+   */
   Vector GetPosition(); // Jonathan
 
 private:

@@ -431,6 +431,11 @@
   }, 
   {
     "directory": "/home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build", 
+    "command": "/usr/bin/g++ -std=c++11 -std=c++11 -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_SQLITE3=1 ../src/wimax/model/service-flow.cc -c -o /home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build/src/wimax/model/service-flow.cc.1.o", 
+    "file": "../src/wimax/model/service-flow.cc"
+  }, 
+  {
+    "directory": "/home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build", 
     "command": "/usr/bin/g++ -std=c++11 -std=c++11 -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_SQLITE3=1 ../src/wimax/model/wimax-mac-queue.cc -c -o /home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build/src/wimax/model/wimax-mac-queue.cc.1.o", 
     "file": "../src/wimax/model/wimax-mac-queue.cc"
   }, 
@@ -2051,11 +2056,6 @@
   }, 
   {
     "directory": "/home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build", 
-    "command": "/usr/bin/g++ -std=c++11 -std=c++11 -fPIC -pthread -I. -I.. -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_SQLITE3=1 -DHAVE_LIBXML2=1 ../src/lte/model/lte-enb-rrc.cc -c -o /home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build/src/lte/model/lte-enb-rrc.cc.1.o", 
-    "file": "../src/lte/model/lte-enb-rrc.cc"
-  }, 
-  {
-    "directory": "/home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build", 
     "command": "/usr/bin/g++ -std=c++11 -std=c++11 -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 ../src/core/model/unix-system-condition.cc -c -o /home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build/src/core/model/unix-system-condition.cc.1.o", 
     "file": "../src/core/model/unix-system-condition.cc"
   }, 
@@ -2216,8 +2216,8 @@
   }, 
   {
     "directory": "/home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build", 
-    "command": "/usr/bin/g++ -std=c++11 -std=c++11 -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_SQLITE3=1 ../src/wimax/model/service-flow.cc -c -o /home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build/src/wimax/model/service-flow.cc.1.o", 
-    "file": "../src/wimax/model/service-flow.cc"
+    "command": "/usr/bin/g++ -std=c++11 -std=c++11 -fPIC -pthread -I. -I.. -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_SQLITE3=1 -DHAVE_LIBXML2=1 ../src/lte/model/lte-enb-rrc.cc -c -o /home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build/src/lte/model/lte-enb-rrc.cc.1.o", 
+    "file": "../src/lte/model/lte-enb-rrc.cc"
   }, 
   {
     "directory": "/home/jonathan/ns3_27_ah_Tony/IMD_CA_Power_Inspection/ns-3.27/build", 

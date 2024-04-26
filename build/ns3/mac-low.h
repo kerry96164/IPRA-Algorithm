@@ -633,8 +633,31 @@ public:
   void AdjustRate(bool);
   WifiMode ChooseRate(int);
   bool ifneedrts (void) const;
-  double GetDistance(Mac48Address to); // Jonathan
-  std::vector<double> GetPositionOfDest(Mac48Address to); // Jonathan
+
+  /**
+   * Get the distance to the destination from m_distancetable.
+   * \param to the MacAddress of destination
+   * \return the distance between two nodes. Return 0 if the distance is not in the table.
+   */
+  double GetDistanceFromTable(Mac48Address to); // Jonathan
+
+  /**
+   * Save the Distance to the table. The table index is MacAddress and the value is the distance.
+   * \param to MacAddress of the receiver, which is the control packet transmitter.
+   * \param distance the distance between this node and the receier.
+   */
+  void SaveDistanceToTable(Mac48Address to, double distance); // Jonathan
+
+  /**
+   * Calculate the distance between this node and the position control packet transmitter.
+   * \param RxPosition the position vector of the node.
+   * \return the distance between two nodes. 
+   */
+  double CalculateDistance(Vector RxPosition); // Jonathan
+
+  void PrintPositionTable(); // Jonathan
+
+  bool InspectTxpower(double distance, double txpower); // Jonathan
 
 private:
   /**
@@ -1126,6 +1149,7 @@ private:
   MacLowRxCallback m_rxCallback; //!< Callback to pass packet up
   int ackCount;
   int m_currentRate;////////////liang
+  std::map<Mac48Address, double> m_distancetable; //!< The table index is MacAddress, value is distance. // Jonathan
 
   /**
    * A struct for packet, Wifi header, and timestamp.
