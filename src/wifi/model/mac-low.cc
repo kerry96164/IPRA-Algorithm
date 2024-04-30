@@ -34,6 +34,7 @@
 #include "ns3/wifi-module.h"
 #include "ns3/core-module.h"
 #include "wifi-utils.h"
+#include "ns3/propagation-loss-model.h"
 #define RateUp 10
 #define RateDown 5
 #define parameter 7.93315E-13
@@ -2027,14 +2028,26 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
     {
       txpower = 0.04;
     }
+
     bool IsEnough = true;
-    // Jonathan
     if(m_phy->GetDevice()->GetIfIndex()==0)
     {
       //TODO: Check if Txpower is large enough
       uint32_t nodeid = m_phy->GetDevice()->GetNode()->GetId();
       // NS_LOG_UNCOND("node " << nodeid);
       double distance = GetDistanceFromTable(hdr->GetAddr1 ());
+      if(distance > 0)
+      {
+        // m_exponent= 3 ,m_referenceloss= 46.6777 ,m_referenceDistance= 1
+        double pathLossDb = 10 * 3 * std::log10 (distance);
+        double rxc = -46.6777 - pathLossDb;
+        double rxpowerDbm = WToDbm(txpower) + rxc;
+        // NS_LOG_UNCOND("rxpower(dBm)= " << rxpowerDbm);
+        if(rxpowerDbm < -82.0)
+        {
+          IsEnough = false;
+        }  
+      }
       // bool IsEnough = InspectTxpower(distance, txpower); // calculate the rxpower
       // NS_LOG_UNCOND("IsEnough " << IsEnough);
     }
@@ -2042,12 +2055,12 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
 
 
 
-    // if(!IsEnough)
-    // {
-    //   ChannelBusy();
-    // }
-    // else
-    // {
+    if(!IsEnough)
+    {
+      ChannelBusy();
+    }
+    else
+    {
       // Ptr<PropagationLossModel> loss = YansWifiChannel::GetMLoss();
       // loss->CalcRxPower (txPowerDbm, senderMobility, receiverMobility);
 
@@ -2170,7 +2183,7 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
             txVector.SetPreambleType (WIFI_PREAMBLE_NONE);
           }
       }
-    // }
+    }
     
 }
 

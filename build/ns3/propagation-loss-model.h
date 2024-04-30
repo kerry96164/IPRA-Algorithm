@@ -511,6 +511,9 @@ public:
    */
   void SetReference (double referenceDistance, double referenceLoss);
 
+  double GetReferenceLoss (void) const; // Jonathan
+  double GetReferenceDistance (void) const; // Jonathan
+
 private:
   /**
    * \brief Copy constructor

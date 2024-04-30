@@ -505,6 +505,18 @@ LogDistancePropagationLossModel::GetPathLossExponent (void) const
 }
 
 double
+LogDistancePropagationLossModel::GetReferenceDistance (void) const
+{
+  return m_referenceDistance;
+}
+
+double
+LogDistancePropagationLossModel::GetReferenceLoss (void) const
+{
+  return m_referenceLoss;
+}
+
+double
 LogDistancePropagationLossModel::DoCalcRxPower (double txPowerDbm,
                                                 Ptr<MobilityModel> a,
                                                 Ptr<MobilityModel> b) const
@@ -532,8 +544,8 @@ LogDistancePropagationLossModel::DoCalcRxPower (double txPowerDbm,
   double rxc = -m_referenceLoss - pathLossDb;
   NS_LOG_DEBUG ("distance="<<distance<<"m, reference-attenuation="<< -m_referenceLoss<<"dB, "<<
                 "attenuation coefficient="<<rxc<<"db");
-  //std::cout<<txPowerDbm<<"  distance="<<distance<<"m, reference-attenuation="<< -m_referenceLoss<<"dB, "<<
-                //"attenuation coefficient="<<rxc<<"db\n";
+  // std::cout<<txPowerDbm<<"  distance="<<distance<<"m, reference-attenuation="<< -m_referenceLoss<<"dB, "<<
+  //               "attenuation coefficient="<<rxc<<"db\n";s
   return txPowerDbm + rxc;
 }
 
