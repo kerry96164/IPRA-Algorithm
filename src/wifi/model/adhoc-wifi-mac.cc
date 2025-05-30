@@ -100,7 +100,7 @@ AdhocWifiMac::Enqueue (Ptr<const Packet> packet, Mac48Address to)
     {
       //In ad hoc mode, we assume that every destination supports all
       //the rates we support.
-      if (m_htSupported || m_vhtSupported || m_heSupported)
+      if (m_htSupported || m_vhtSupported || m_heSupported || m_s1gSupported) //802.11ah
         {
           m_stationManager->AddAllSupportedMcs (to);
         }
@@ -162,7 +162,7 @@ AdhocWifiMac::Enqueue (Ptr<const Packet> packet, Mac48Address to)
       hdr.SetTypeData ();
     }
 
-  if (m_htSupported || m_vhtSupported || m_heSupported)
+  if (m_htSupported || m_vhtSupported || m_heSupported || m_s1gSupported) //802.11ah
     {
       hdr.SetNoOrder ();
     }
