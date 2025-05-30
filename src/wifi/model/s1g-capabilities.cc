@@ -249,58 +249,58 @@ uint64_t
 S1gCapabilities::GetS1gCapabilitiesInfoL64 () const
 {
   uint64_t val = 0;
-  val |= (m_s1gLongSupport & 0x01);
-  val |= (m_shortGuardIntervalFor1Mhz & 0x01) << 1;
-  val |= (m_shortGuardIntervalFor2Mhz & 0x01) << 2;
-  val |= (m_shortGuardIntervalFor4Mhz & 0x01) << 3;
-  val |= (m_shortGuardIntervalFor8Mhz & 0x01) << 4;
-  val |= (m_shortGuardIntervalFor16Mhz & 0x01) << 5;
-  val |= (m_supportedChannelWidth & 0x03) << 6;
-  val |= (m_rxLdpc & 0x01) << 8;
-  val |= (m_txStbc & 0x01) << 9;
-  val |= (m_rxStbc & 0x01) << 10;
-  val |= (m_suBeamformerCapable & 0x01) << 11;
-  val |= (m_suBeamformeeCapable & 0x01) << 12;
-  val |= (m_beamformeeStsCapable & 0x07) << 13;
-  val |= (m_numberOfSoundingDimensions & 0x07) << 16;
-  val |= (m_muBeamformerCapable & 0x01) << 19;
-  val |= (m_muBeamformeeCapable & 0x01) << 20;
-  val |= (m_htcVhtCapable & 0x01) << 21;
-  val |= (m_travwlingPilotSupport & 0x03) << 22;
-  val |= (m_rdResponder & 0x01) << 24;
-  val |= (m_htDelayedBlockAck & 0x01) << 25;
-  val |= (m_maxMpduLength & 0x01) << 26;
-  val |= (m_maxAmpduLengthExponent & 0x03) << 27;
-  val |= (m_minMpduStartSpacing & 0x07) << 29;
-  val |= (m_uplinkSyncCapable & 0x01) << 32;
-  val |= (m_dynamicAid & 0x01) << 33;
-  val |= (m_batSupport & 0x01) << 34;
-  val |= (m_timAdeSupport & 0x01) << 35;
-  val |= (m_nonTimSupport & 0x01) << 36;
-  val |= (m_groupAidSupport & 0x01) << 37;
-  val |= (m_staTypeSupport & 0x03) << 38;
-  val |= (m_centralizedAuthenticationControl & 0x01) << 40;
-  val |= (m_distributedAuthenticationControl & 0x01) << 41;
-  val |= (m_aMsduSupported & 0x01) << 42;
-  val |= (m_aMpduSupported & 0x01) << 43;
-  val |= (m_asymmetricBlockAckSupported & 0x01) << 44;
-  val |= (m_flowControlSupported & 0x01) << 45;
-  val |= (m_sectorizedBeamCapable & 0x03) << 46;
-  val |= (m_obssMitigationSupport & 0x01) << 48;
-  val |= (m_fragmentBaSupport & 0x01) << 49;
-  val |= (m_ndpPsPollSupported & 0x01) << 50;
-  val |= (m_rawOperationSupport & 0x01) << 51;
-  val |= (m_pageSlicingSupport & 0x01) << 52;
-  val |= (m_txopSharingImplicitAckSupport & 0x01) << 53;
-  val |= (m_vhtLinkAdaptationCapable & 0x03) << 54;
-  val |= (m_tackSupportAsPsPollResponse & 0x01) << 56;
-  val |= (m_duplicate1MHzSupport & 0x01) << 57;
-  val |= (m_mcsNegotiationSupport & 0x01) << 58;
-  val |= (m_1MHzControlResponsePreambleSupport & 0x01) << 59;
-  val |= (m_ndpBeamformingReportPollSupported & 0x01) << 60;
-  val |= (m_unsolicitedDynamicAid & 0x01) << 61;
-  val |= (m_sectorTrainingOperationSupported & 0x01) << 62;
-  val |= (m_temporaryPsModeSwitch & 0x01) << 63;
+  val |= ((uint64_t)m_s1gLongSupport & 0x01);
+  val |= ((uint64_t)m_shortGuardIntervalFor1Mhz & 0x01) << 1;
+  val |= ((uint64_t)m_shortGuardIntervalFor2Mhz & 0x01) << 2;
+  val |= ((uint64_t)m_shortGuardIntervalFor4Mhz & 0x01) << 3;
+  val |= ((uint64_t)m_shortGuardIntervalFor8Mhz & 0x01) << 4;
+  val |= ((uint64_t)m_shortGuardIntervalFor16Mhz & 0x01) << 5;
+  val |= ((uint64_t)m_supportedChannelWidth & 0x03) << 6;
+  val |= ((uint64_t)m_rxLdpc & 0x01) << 8;
+  val |= ((uint64_t)m_txStbc & 0x01) << 9;
+  val |= ((uint64_t)m_rxStbc & 0x01) << 10;
+  val |= ((uint64_t)m_suBeamformerCapable & 0x01) << 11;
+  val |= ((uint64_t)m_suBeamformeeCapable & 0x01) << 12;
+  val |= ((uint64_t)m_beamformeeStsCapable & 0x07) << 13;
+  val |= ((uint64_t)m_numberOfSoundingDimensions & 0x07) << 16;
+  val |= ((uint64_t)m_muBeamformerCapable & 0x01) << 19;
+  val |= ((uint64_t)m_muBeamformeeCapable & 0x01) << 20;
+  val |= ((uint64_t)m_htcVhtCapable & 0x01) << 21;
+  val |= ((uint64_t)m_travwlingPilotSupport & 0x03) << 22;
+  val |= ((uint64_t)m_rdResponder & 0x01) << 24;
+  val |= ((uint64_t)m_htDelayedBlockAck & 0x01) << 25;
+  val |= ((uint64_t)m_maxMpduLength & 0x01) << 26;
+  val |= ((uint64_t)m_maxAmpduLengthExponent & 0x03) << 27;
+  val |= ((uint64_t)m_minMpduStartSpacing & 0x07) << 29;
+  val |= ((uint64_t)m_uplinkSyncCapable & 0x01) << 32;
+  val |= ((uint64_t)m_dynamicAid & 0x01) << 33;
+  val |= ((uint64_t)m_batSupport & 0x01) << 34;
+  val |= ((uint64_t)m_timAdeSupport & 0x01) << 35;
+  val |= ((uint64_t)m_nonTimSupport & 0x01) << 36;
+  val |= ((uint64_t)m_groupAidSupport & 0x01) << 37;
+  val |= ((uint64_t)m_staTypeSupport & 0x03) << 38;
+  val |= ((uint64_t)m_centralizedAuthenticationControl & 0x01) << 40;
+  val |= ((uint64_t)m_distributedAuthenticationControl & 0x01) << 41;
+  val |= ((uint64_t)m_aMsduSupported & 0x01) << 42;
+  val |= ((uint64_t)m_aMpduSupported & 0x01) << 43;
+  val |= ((uint64_t)m_asymmetricBlockAckSupported & 0x01) << 44;
+  val |= ((uint64_t)m_flowControlSupported & 0x01) << 45;
+  val |= ((uint64_t)m_sectorizedBeamCapable & 0x03) << 46;
+  val |= ((uint64_t)m_obssMitigationSupport & 0x01) << 48;
+  val |= ((uint64_t)m_fragmentBaSupport & 0x01) << 49;
+  val |= ((uint64_t)m_ndpPsPollSupported & 0x01) << 50;
+  val |= ((uint64_t)m_rawOperationSupport & 0x01) << 51;
+  val |= ((uint64_t)m_pageSlicingSupport & 0x01) << 52;
+  val |= ((uint64_t)m_txopSharingImplicitAckSupport & 0x01) << 53;
+  val |= ((uint64_t)m_vhtLinkAdaptationCapable & 0x03) << 54;
+  val |= ((uint64_t)m_tackSupportAsPsPollResponse & 0x01) << 56;
+  val |= ((uint64_t)m_duplicate1MHzSupport & 0x01) << 57;
+  val |= ((uint64_t)m_mcsNegotiationSupport & 0x01) << 58;
+  val |= ((uint64_t)m_1MHzControlResponsePreambleSupport & 0x01) << 59;
+  val |= ((uint64_t)m_ndpBeamformingReportPollSupported & 0x01) << 60;
+  val |= ((uint64_t)m_unsolicitedDynamicAid & 0x01) << 61;
+  val |= ((uint64_t)m_sectorTrainingOperationSupported & 0x01) << 62;
+  val |= ((uint64_t)m_temporaryPsModeSwitch & 0x01) << 63;
   return val;
 }
 
@@ -308,13 +308,13 @@ uint16_t
 S1gCapabilities::GetS1gCapabilitiesInfoH16 (void) const
 {
   uint16_t val = 0;
-  val |= (m_twtGroupingSupport & 0x01);
-  val |= (m_dbtCapable & 0x01) << 1;
-  val |= (m_color & 0x07) << 2;
-  val |= (m_twtRequesterSupport & 0x01) << 5;
-  val |= (m_twtResponderSupport & 0x01) << 6;
-  val |= (m_pv1FrameSupport & 0x01) << 7;
-  val |= (m_linkAdaptationPerNormalControlResponseCapable & 0x01) << 8;
+  val |= ((uint16_t)m_twtGroupingSupport & 0x01);
+  val |= ((uint16_t)m_dbtCapable & 0x01) << 1;
+  val |= ((uint16_t)m_color & 0x07) << 2;
+  val |= ((uint16_t)m_twtRequesterSupport & 0x01) << 5;
+  val |= ((uint16_t)m_twtResponderSupport & 0x01) << 6;
+  val |= ((uint16_t)m_pv1FrameSupport & 0x01) << 7;
+  val |= ((uint16_t)m_linkAdaptationPerNormalControlResponseCapable & 0x01) << 8;
   return val;
 }
 
@@ -525,7 +525,7 @@ void
 S1gCapabilities::SetRxS1gMcsMap (uint8_t mcs, uint8_t nss)
 {
   //MCS index should be 2 or 7 or 9
-  NS_ASSERT (mcs == 2 && mcs ==7 && mcs == 9);
+  NS_ASSERT (mcs == 2 || mcs ==7 || mcs == 9);
   switch (mcs)
     {
     case 2:
@@ -558,7 +558,7 @@ void
 S1gCapabilities::SetTxS1gMcsMap (uint8_t mcs, uint8_t nss)
 {
   //MCS index should be 2 or 7 or 9
-  NS_ASSERT (mcs == 2 && mcs ==7 && mcs == 9);
+  NS_ASSERT (mcs == 2 || mcs ==7 || mcs == 9);
   switch (mcs)
   {
   case 2:

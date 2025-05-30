@@ -37,6 +37,7 @@ NS_OBJECT_ENSURE_REGISTERED (RegularWifiMac);
 RegularWifiMac::RegularWifiMac ()
   : m_htSupported (0),
     m_vhtSupported (0),
+    m_s1gSupported (0), //802.11ah
     m_erpSupported (0),
     m_dsssSupported (0),
     m_heSupported (0)
@@ -121,6 +122,7 @@ RegularWifiMac::SetWifiRemoteStationManager (const Ptr<WifiRemoteStationManager>
   m_stationManager = stationManager;
   m_stationManager->SetHtSupported (GetHtSupported ());
   m_stationManager->SetVhtSupported (GetVhtSupported ());
+  m_stationManager->SetS1gSupported (GetS1gSupported ()); //802.11ah
   m_stationManager->SetHeSupported (GetHeSupported ());
   m_low->SetWifiRemoteStationManager (stationManager);
 
@@ -264,6 +266,7 @@ RegularWifiMac::GetS1gCapabilities (void) const
       capabilities.SetS1gSupported (1);
       switch (m_phy->GetChannelWidth ())
         {
+          case 1:
           case 2:
             capabilities.SetSupportedChannelWidthSet (0);
             break;
@@ -675,10 +678,10 @@ RegularWifiMac::SetS1gSupported (bool enable)
 {
   NS_LOG_FUNCTION (this << enable);
   m_s1gSupported = enable;
-  if (enable)
-    {
-      SetQosSupported (true);
-    }
+  // if (enable)
+  //   {
+  //     SetQosSupported (true);
+  //   }
   if (!enable)
     {
       DisableAggregation ();
