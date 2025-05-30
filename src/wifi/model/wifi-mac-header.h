@@ -607,8 +607,8 @@ public:
   typedef void (* TracedCallback)(const WifiMacHeader &header);
   void Settoleratepower (uint16_t toleratepower);//steve
   uint16_t Gettolerate(void);
-  void Settxpower (uint16_t txpower);//steve
-  uint16_t Gettxpower(void);
+  void Settxpower (uint16_t txpower);// Jonathan
+  uint16_t Gettxpower(void) const; // Jonathan
   void Setpowerboolean(uint16_t yorn);
   bool ifisgreaterthanzero(void);
 

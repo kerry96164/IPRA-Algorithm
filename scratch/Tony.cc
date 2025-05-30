@@ -59,8 +59,18 @@
 #include "ns3/applications-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/netanim-module.h"
-#include <fstream>
+#include "ns3/random-variable-stream.h"
+#include "ns3/aodv-module.h"
+
+#include <stdlib.h>
+#include <time.h>
 #include <math.h>
+#include <fstream>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <algorithm>
 
 
 using namespace ns3;
@@ -70,26 +80,33 @@ double globalthroughput[10] = {0};
 double globalreceivepacket[10] = {0};
 double globalloss[10]={0};
 double globaltotalthroughput=0;
-int hidden = 1;
+int hidden = 0;
 int far=0;
-double xspace=200;
+double xspace=100;
 double yspace=75;
 double distance=500;
+// Jonathan
+uint32_t numNodes = 100;
+double sideLength = 1000.0;  //(m)
+uint32_t numFlows = 10;  // must smaller than numNodes/2
+uint32_t centerNode = 2*numNodes/3; // node in the margin = numNodes - centerNode
+
+
 NS_LOG_COMPONENT_DEFINE ("WifiSimpleAdhoc");
 ApplicationContainer gencbr(NodeContainer server,NodeContainer client,Ipv4Address address,double simulationTime,double starttime,double pingtime)
 {
-
+  // NS_LOG_UNCOND("In gencbr");
   UdpServerHelper myServer (12345);
   ApplicationContainer serverApp = myServer.Install (server);
   serverApp.Start (Seconds (0.0));
   serverApp.Stop (Seconds (simulationTime+1));
   UdpClientHelper myClient (address, 12345);
   myClient.SetAttribute ("MaxPackets", UintegerValue (4294967295u));
-  myClient.SetAttribute ("Interval", TimeValue (Time ("0.00001"))); //packets/s
+  myClient.SetAttribute ("Interval", TimeValue (Time ("0.0001"))); //packets/s
   myClient.SetAttribute ("PacketSize", UintegerValue (1472));
   ApplicationContainer clientApp = myClient.Install (client);
   clientApp.Start (Seconds (1.0+starttime));
-  clientApp.Stop (Seconds (simulationTime+1.0));
+  clientApp.Stop (Seconds (starttime+20.0));
     
   
   UdpEchoClientHelper echoClientHelper (address, 9);
@@ -120,11 +137,11 @@ void runthesimulation()
   // turn off RTS/CTS for frames below 2200 bytes
   Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("100000000"));
   // Fix non-unicast data rate to be the same as that of unicast
-  Config::SetDefault ("ns3::WifiPhy::CcaMode1Threshold", DoubleValue (-82.0));
-  Config::SetDefault ("ns3::WifiPhy::EnergyDetectionThreshold", DoubleValue (-79.0));
+  Config::SetDefault ("ns3::WifiPhy::CcaMode1Threshold", DoubleValue (-106.0));
+  Config::SetDefault ("ns3::WifiPhy::EnergyDetectionThreshold", DoubleValue (-103.0));
   NodeContainer c;
 
-  double  TotalSimulationTime_sec = 2;
+  double  TotalSimulationTime_sec = 50;
  /*
   if(hidden==1)
   {
@@ -141,7 +158,7 @@ void runthesimulation()
   
 */
 
-  c.Create (20);
+  c.Create (numNodes);
   
   
   // The below set of helpers will help us to put together the wifi NICs we want
@@ -185,40 +202,107 @@ void runthesimulation()
   std::cout<<int(phySta->GetFrequency ())<<std::endl;
   std::cout<<int(phySta2->GetFrequency ())<<std::endl;
   std::cout<<int(phySta->GetFrequency ())<<"  "<<int(phySta->GetChannelWidth())<<"  "<<(phySta->GetGuardInterval())<<std::endl;
-  
-  std::cout << "xspace: " << xspace << " yspace: " << yspace << " distance: " << distance << std::endl;
   // Note that with FixedRssLossModel, the positions below are not
   // used for received signal strength.
+
   MobilityHelper mobility;
-  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-  positionAlloc->Add (Vector (0.0, 0.0, 0.0));
-  positionAlloc->Add (Vector (xspace, 0.0, 0.0));
-  positionAlloc->Add (Vector (xspace+distance, 0.0, 0.0));
-  positionAlloc->Add (Vector (2*xspace+distance ,0.0, 0.0));
-  positionAlloc->Add (Vector (0.0, yspace, 0.0));
-  positionAlloc->Add (Vector (xspace, yspace, 0.0));
-  positionAlloc->Add (Vector (xspace+distance,yspace, 0.0));
-  positionAlloc->Add (Vector (2*xspace+distance, yspace, 0.0));
-  positionAlloc->Add (Vector (0.0, 2*yspace, 0.0));
-  positionAlloc->Add (Vector (xspace, 2*yspace, 0.0));
-  positionAlloc->Add (Vector (xspace+distance, 2*yspace, 0.0));
-  positionAlloc->Add (Vector (2*xspace+distance, 2*yspace, 0.0));
-  positionAlloc->Add (Vector (0.0, 3*yspace, 0.0));
-  positionAlloc->Add (Vector (xspace, 3*yspace, 0.0));
-  positionAlloc->Add (Vector (xspace+distance, 3*yspace, 0.0));
-  positionAlloc->Add (Vector (2*xspace+distance,3*yspace, 0.0));
-  positionAlloc->Add (Vector (0.0, 4*yspace, 0.0));
-  positionAlloc->Add (Vector (xspace, 4*yspace, 0.0));
-  positionAlloc->Add (Vector (xspace+distance, 4*yspace, 0.0));
-  positionAlloc->Add (Vector (2*xspace+distance,4*yspace, 0.0));
-  mobility.SetPositionAllocator (positionAlloc);
+  /*----------------------------------------------- */
+  // Fixed topology
+  /*----------------------------------------------- */
+  // Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+  // positionAlloc->Add (Vector (0.0, 0.0, 0.0));
+  // positionAlloc->Add (Vector (xspace, 0.0, 0.0));
+  // positionAlloc->Add (Vector (xspace+distance, 0.0, 0.0));
+  // positionAlloc->Add (Vector (2*xspace+distance ,0.0, 0.0));
+  // positionAlloc->Add (Vector (0.0, yspace, 0.0));
+  // positionAlloc->Add (Vector (xspace, yspace, 0.0));
+  // positionAlloc->Add (Vector (xspace+distance,yspace, 0.0));
+  // positionAlloc->Add (Vector (2*xspace+distance, yspace, 0.0));
+  // positionAlloc->Add (Vector (0.0, 2*yspace, 0.0));
+  // positionAlloc->Add (Vector (xspace, 2*yspace, 0.0));
+  // positionAlloc->Add (Vector (xspace+distance, 2*yspace, 0.0));
+  // positionAlloc->Add (Vector (2*xspace+distance, 2*yspace, 0.0));
+  // positionAlloc->Add (Vector (0.0, 3*yspace, 0.0));
+  // positionAlloc->Add (Vector (xspace, 3*yspace, 0.0));
+  // positionAlloc->Add (Vector (xspace+distance, 3*yspace, 0.0));
+  // positionAlloc->Add (Vector (2*xspace+distance,3*yspace, 0.0));
+  // positionAlloc->Add (Vector (0.0, 4*yspace, 0.0));
+  // positionAlloc->Add (Vector (xspace, 4*yspace, 0.0));
+  // positionAlloc->Add (Vector (xspace+distance, 4*yspace, 0.0));
+  // positionAlloc->Add (Vector (2*xspace+distance,4*yspace, 0.0));
+  // mobility.SetPositionAllocator (positionAlloc);
+  /*----------------------------------------------- */
+
+  /*----------------------------------------------- */
+  // random topology
+  // set position allocator
+  /*----------------------------------------------- */
+  // double min = 0.0;
+  
+  // Ptr<UniformRandomVariable> uniform_rv = CreateObject<UniformRandomVariable>();
+  // uniform_rv->SetAttribute ("Min", DoubleValue (min));
+  // uniform_rv->SetAttribute ("Max", DoubleValue (sideLength));
+
+	// Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
+  // for(int i=0; i < numNodes; ++i)
+  // {
+  //   Ptr<MobilityModel> mob = c.Get(i)->GetObject<MobilityModel>();
+  //   double x_pos = uniform_rv->GetValue (); // within the range [min, max)
+  //   double y_pos = uniform_rv->GetValue (); // within the range [min, max)
+
+	// 	positionAlloc->Add(Vector(x_pos, y_pos, 0.0));
+	// }
+	// mobility.SetPositionAllocator(positionAlloc);
+  /*----------------------------------------------- */
+
+  /*----------------------------------------------- */
+  // non-uniform random topology
+  // set position allocator
+  /*----------------------------------------------- */
+  double min = 0.0;
+	Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
+  double x_pos;
+  double y_pos;
+
+  Ptr<UniformRandomVariable> uniform_rv = CreateObject<UniformRandomVariable>();
+  uniform_rv->SetAttribute ("Min", DoubleValue (sideLength/4));
+  uniform_rv->SetAttribute ("Max", DoubleValue (3*sideLength/4));
+
+  for(int i=0; i < centerNode; ++i)
+  {
+    Ptr<MobilityModel> mob = c.Get(i)->GetObject<MobilityModel>();
+    x_pos = uniform_rv->GetValue (); // within the range [min, max)
+    y_pos = uniform_rv->GetValue (); // within the range [min, max)
+
+		positionAlloc->Add(Vector(x_pos, y_pos, 0.0));
+	}
+
+  // Ptr<UniformRandomVariable> uniform_rv = CreateObject<UniformRandomVariable>();
+  uniform_rv->SetAttribute ("Min", DoubleValue (min));
+  uniform_rv->SetAttribute ("Max", DoubleValue (sideLength));
+
+  for(int i=0; i < (numNodes-centerNode); ++i)
+  {
+    Ptr<MobilityModel> mob = c.Get(i)->GetObject<MobilityModel>();
+    do{
+    y_pos = uniform_rv->GetValue (); // within the range [min, max)
+    x_pos = uniform_rv->GetValue (); // within the range [min, max)
+    }while( (sideLength/4<y_pos && y_pos<3*sideLength/4) || (sideLength/4<x_pos && x_pos<3*sideLength/4) );
+
+
+		positionAlloc->Add(Vector(x_pos, y_pos, 0.0));
+	}
+	mobility.SetPositionAllocator(positionAlloc);
+  /*----------------------------------------------- */
 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (c);
   
-  // Ptr<MobilityModel> mob = c.Get(2)->GetObject<MobilityModel>();
-  // Vector Position = mob->GetPosition();
-  // std::cout << Position.x << " " << Position.y << " " << Position.z << std::endl;
+  AodvHelper aodv;
+
+  Ipv4ListRoutingHelper list;
+  list.Add (aodv, 10);//install Protocol to node
+
 
   InternetStackHelper internet;
   internet.Install (c);
@@ -229,9 +313,6 @@ void runthesimulation()
   Ipv4InterfaceContainer i = ipv4.Assign (devices);
   ipv4.SetBase ("10.1.10.0", "255.255.255.0");
   Ipv4InterfaceContainer j = ipv4.Assign (devices2);
-  
- 
-
 
   double  a[10]={0.001,0.0015,0.002,0.0025,0.003,0.0035,0.004,0.0045,0.005,0.0055};
   double  temp;
@@ -240,7 +321,7 @@ void runthesimulation()
   for(int i=0;i<10;++i)
   {
     r1 = rand() % 10;
-    //std::cout<<c<<std::endl;
+    // std::cout<<c<<std::endl;
     r2 = rand() % 10;
     //std::cout<<d<<std::endl;
     temp = a[r1];
@@ -249,57 +330,56 @@ void runthesimulation()
   }
   ApplicationContainer cbrApps;
 
+  /*----------------------------------------------- */
+  // Flows for random topology
+  /*----------------------------------------------- */ 
+  double clientStartTime = 0.0;
+  double clientEndTime = 0.0;
+  double LO = 10.0;
+  double HI = TotalSimulationTime_sec - 10;
 
-  if(hidden == 1)
+  for(int flow = 0; flow < numFlows ; ++flow)
   {
-     cbrApps.Add(gencbr(c.Get (1),c.Get (0),i.GetAddress (1),TotalSimulationTime_sec,a[0],0.1));
-    cbrApps.Add(gencbr(c.Get (2),c.Get (3),i.GetAddress (2),TotalSimulationTime_sec,a[1],0.2));
-    cbrApps.Add(gencbr(c.Get (5),c.Get (4),i.GetAddress (5),TotalSimulationTime_sec,a[2],0.3));
-    cbrApps.Add(gencbr(c.Get (6),c.Get (7),i.GetAddress (6),TotalSimulationTime_sec,a[3],0.4));
-    cbrApps.Add(gencbr(c.Get (9),c.Get (8),i.GetAddress (9),TotalSimulationTime_sec,a[4],0.5));
-    cbrApps.Add(gencbr(c.Get (10),c.Get (11),i.GetAddress (10),TotalSimulationTime_sec,a[5],0.6));
-    cbrApps.Add(gencbr(c.Get (13),c.Get (12),i.GetAddress (13),TotalSimulationTime_sec,a[6],0.7));
-    cbrApps.Add(gencbr(c.Get (14),c.Get (15),i.GetAddress (14),TotalSimulationTime_sec,a[7],0.8));
-    cbrApps.Add(gencbr(c.Get (17),c.Get (16),i.GetAddress (17),TotalSimulationTime_sec,a[8],0.9));
-    cbrApps.Add(gencbr(c.Get (18),c.Get (19),i.GetAddress (18),TotalSimulationTime_sec,a[9],1.0));
+    // NS_LOG_UNCOND(flow);
+    clientStartTime = static_cast <double> (rand()) /( static_cast <double> (RAND_MAX/(HI)));
+    cbrApps.Add(gencbr(c.Get (2*flow+1),c.Get (2*flow),i.GetAddress (2*flow+1),TotalSimulationTime_sec,clientStartTime,0.1));
   }
-  else
-  {
-    cbrApps.Add(gencbr(c.Get (0),c.Get (1),i.GetAddress (0),TotalSimulationTime_sec,a[0],0.1));
-    cbrApps.Add(gencbr(c.Get (3),c.Get (2),i.GetAddress (3),TotalSimulationTime_sec,a[1],0.2));
-    cbrApps.Add(gencbr(c.Get (4),c.Get (5),i.GetAddress (4),TotalSimulationTime_sec,a[2],0.3));
-    cbrApps.Add(gencbr(c.Get (7),c.Get (6),i.GetAddress (7),TotalSimulationTime_sec,a[3],0.4));
-    cbrApps.Add(gencbr(c.Get (8),c.Get (9),i.GetAddress (8),TotalSimulationTime_sec,a[4],0.5));
-    cbrApps.Add(gencbr(c.Get (11),c.Get (10),i.GetAddress (11),TotalSimulationTime_sec,a[5],0.6));
-    cbrApps.Add(gencbr(c.Get (12),c.Get (13),i.GetAddress (12),TotalSimulationTime_sec,a[6],0.7));
-    cbrApps.Add(gencbr(c.Get (15),c.Get (14),i.GetAddress (15),TotalSimulationTime_sec,a[7],0.8));
-    cbrApps.Add(gencbr(c.Get (16),c.Get (17),i.GetAddress (16),TotalSimulationTime_sec,a[8],0.9));
-    cbrApps.Add(gencbr(c.Get (19),c.Get (18),i.GetAddress (19),TotalSimulationTime_sec,a[9],1.0));
-  }
+  /*----------------------------------------------- */
+  
+  /*----------------------------------------------- */
+  // Flows for fixed topology
+  /*----------------------------------------------- */   
+  // if(hidden == 1)
+  // {
+  //   cbrApps.Add(gencbr(c.Get (1),c.Get (0),i.GetAddress (1),TotalSimulationTime_sec,a[0],0.1));
+  //   cbrApps.Add(gencbr(c.Get (3),c.Get (2),i.GetAddress (3),TotalSimulationTime_sec,a[1],0.2));
+  //   cbrApps.Add(gencbr(c.Get (5),c.Get (4),i.GetAddress (5),TotalSimulationTime_sec,a[2],0.3));
+  //   cbrApps.Add(gencbr(c.Get (7),c.Get (6),i.GetAddress (7),TotalSimulationTime_sec,a[3],0.4));
+  //   cbrApps.Add(gencbr(c.Get (9),c.Get (8),i.GetAddress (9),TotalSimulationTime_sec,a[4],0.5));
+  //   cbrApps.Add(gencbr(c.Get (11),c.Get (10),i.GetAddress (11),TotalSimulationTime_sec,a[5],0.6));
+  //   cbrApps.Add(gencbr(c.Get (13),c.Get (12),i.GetAddress (13),TotalSimulationTime_sec,a[6],0.7));
+  //   cbrApps.Add(gencbr(c.Get (15),c.Get (14),i.GetAddress (15),TotalSimulationTime_sec,a[7],0.8));
+  //   cbrApps.Add(gencbr(c.Get (17),c.Get (16),i.GetAddress (17),TotalSimulationTime_sec,a[8],0.9));
+  //   cbrApps.Add(gencbr(c.Get (19),c.Get (18),i.GetAddress (19),TotalSimulationTime_sec,a[9],1.0));
+  // }
+  // else
+  // {
+  //   cbrApps.Add(gencbr(c.Get (0),c.Get (1),i.GetAddress (0),TotalSimulationTime_sec,a[0],0.1));
+  //   cbrApps.Add(gencbr(c.Get (3),c.Get (2),i.GetAddress (3),TotalSimulationTime_sec,a[1],0.2));
+  //   cbrApps.Add(gencbr(c.Get (4),c.Get (5),i.GetAddress (4),TotalSimulationTime_sec,a[2],0.3));
+  //   cbrApps.Add(gencbr(c.Get (7),c.Get (6),i.GetAddress (7),TotalSimulationTime_sec,a[3],0.4));
+  //   cbrApps.Add(gencbr(c.Get (8),c.Get (9),i.GetAddress (8),TotalSimulationTime_sec,a[4],0.5));
+  //   cbrApps.Add(gencbr(c.Get (11),c.Get (10),i.GetAddress (11),TotalSimulationTime_sec,a[5],0.6));
+  //   cbrApps.Add(gencbr(c.Get (12),c.Get (13),i.GetAddress (12),TotalSimulationTime_sec,a[6],0.7));
+  //   cbrApps.Add(gencbr(c.Get (15),c.Get (14),i.GetAddress (15),TotalSimulationTime_sec,a[7],0.8));
+  //   cbrApps.Add(gencbr(c.Get (16),c.Get (17),i.GetAddress (16),TotalSimulationTime_sec,a[8],0.9));
+  //   cbrApps.Add(gencbr(c.Get (19),c.Get (18),i.GetAddress (19),TotalSimulationTime_sec,a[9],1.0));
+  // }
+  /*----------------------------------------------- */ 
+
   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
-  /*cbrApps.Add(gencbr(c.Get (0),c.Get (1),i.GetAddress (0),TotalSimulationTime_sec,a[0],0.1));
-  cbrApps.Add(gencbr(c.Get (3),c.Get (2),i.GetAddress (3),TotalSimulationTime_sec,a[1],0.2));
-  cbrApps.Add(gencbr(c.Get (4),c.Get (5),i.GetAddress (4),TotalSimulationTime_sec,a[2],0.3));
-  cbrApps.Add(gencbr(c.Get (7),c.Get (6),i.GetAddress (7),TotalSimulationTime_sec,a[3],0.4));
-  cbrApps.Add(gencbr(c.Get (8),c.Get (9),i.GetAddress (8),TotalSimulationTime_sec,a[4],0.5));
-  cbrApps.Add(gencbr(c.Get (11),c.Get (10),i.GetAddress (11),TotalSimulationTime_sec,a[5],0.6));
-  cbrApps.Add(gencbr(c.Get (12),c.Get (13),i.GetAddress (12),TotalSimulationTime_sec,a[6],0.7));
-  cbrApps.Add(gencbr(c.Get (15),c.Get (14),i.GetAddress (15),TotalSimulationTime_sec,a[7],0.8));*/
-  /*cbrApps.Add(gencbr(c.Get (1),c.Get (0),i.GetAddress (1),TotalSimulationTime_sec,a[0],0.1));
-  cbrApps.Add(gencbr(c.Get (2),c.Get (3),i.GetAddress (2),TotalSimulationTime_sec,a[1],0.2));
-  cbrApps.Add(gencbr(c.Get (5),c.Get (4),i.GetAddress (5),TotalSimulationTime_sec,a[2],0.3));
-  cbrApps.Add(gencbr(c.Get (6),c.Get (7),i.GetAddress (6),TotalSimulationTime_sec,a[3],0.4));
-  cbrApps.Add(gencbr(c.Get (9),c.Get (8),i.GetAddress (9),TotalSimulationTime_sec,a[4],0.5));
-  cbrApps.Add(gencbr(c.Get (10),c.Get (11),i.GetAddress (10),TotalSimulationTime_sec,a[5],0.6));
-  cbrApps.Add(gencbr(c.Get (13),c.Get (12),i.GetAddress (13),TotalSimulationTime_sec,a[6],0.7));
-  cbrApps.Add(gencbr(c.Get (14),c.Get (15),i.GetAddress (14),TotalSimulationTime_sec,a[7],0.8));*/
-    
-
-
-
-
+ 
     // Start Simulation
-
     Simulator::Stop( Seconds( TotalSimulationTime_sec+2.0 ) );
     Simulator::Run ();
     /*monitor->CheckForLostPackets ();
@@ -352,6 +432,6 @@ int main (int argc, char *argv[])
     std::cout<<"  Average RxBytes   :   "<<globalreceivepacket[counter]/testtime*1472<<std::endl;
     std::cout<<"  loss              :   "<<globalloss[counter]/testtime<<std::endl;
   }
-  std::cout<<"total throughput : "<<globaltotalthroughput/testtime<<std::endl;
+  std::cout<<"total throughput : "<<globaltotalthroughput/testtime<<" Mbps "<<std::endl;
   return 0;
 }

@@ -576,8 +576,8 @@ MacLow::Sendpowercontrolpacket(uint16_t tolerancepower,WifiTxVector tx_vector,Ti
   powerwarning.Settoleratepower(tolerancepower);
   //secondphy->SetTxPowerEnd(30);
   //secondphy->SetTxPowerStart(30);
-  
-  powerwarning.Settxpower(uint16_t(20));
+  powerwarning.Settxpower(uint16_t(tolerancepower)); // Jonathan 
+  // powerwarning.Settxpower(uint16_t(20));
   powerwarning.SetAddr1 (hdr.GetAddr2());
   powerwarning.SetDuration (duration);
   
@@ -2081,8 +2081,12 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
         {
           txVector.AddTxPowerNowIntoVector(txpower);
         }
-      if(hdr->Ispowercontrol())
-        txVector.AddTxPowerNowIntoVector(0.1);
+      if(hdr->Ispowercontrol()) // Jonathan
+      {
+        uint16_t power = hdr->Gettxpower();
+        // NS_LOG_UNCOND(power - 65536);
+        txVector.AddTxPowerNowIntoVector(DbmToW(power - 65536));
+      }
       if(hdr->IsPositionPacket())
         txVector.AddTxPowerNowIntoVector(0.1);
         //std::cout<<txpower<<std::endl;

@@ -137,7 +137,7 @@ WifiMacHeader::Settxpower(uint16_t txpower)
   m_txpower = txpower;
 }
 uint16_t
-WifiMacHeader::Gettxpower(void)
+WifiMacHeader::Gettxpower(void) const
 {
   return m_txpower;
 }
