@@ -385,27 +385,27 @@ WifiPhy::GetTypeId (void)
                    MakeBooleanAccessor (&WifiPhy::GetGreenfield,
                                         &WifiPhy::SetGreenfield),
                    MakeBooleanChecker ())
-    .AddAttribute ("S1g1MfieldEnabled",
-                    "Whether or not S1g1Mfield is enabled."
-                    "This parameter is only valuable for 802.11ah STAs and APs.",
-                    BooleanValue (false),
-                    MakeBooleanAccessor (&WifiPhy::GetS1g1Mfield,
-                                         &WifiPhy::SetS1g1Mfield),
-                    MakeBooleanChecker ())
-    .AddAttribute ("S1gShortfieldEnabled",
-                    "Whether or not S1gShortfield is enabled."
-                    "This parameter is only valuable for 802.11ah STAs and APs.",
-                    BooleanValue (false),
-                    MakeBooleanAccessor (&WifiPhy::GetS1gShortfield,
-                                         &WifiPhy::SetS1gShortfield),
-                    MakeBooleanChecker ())
-    .AddAttribute ("S1gLongfieldEnabled",
-                    "Whether or not S1gLongfield is enabled."
-                    "This parameter is only valuable for 802.11ah STAs and APs.",
-                    BooleanValue (false),
-                    MakeBooleanAccessor (&WifiPhy::GetS1gLongfield,
-                                         &WifiPhy::SetS1gLongfield),
-                    MakeBooleanChecker ())
+    // .AddAttribute ("S1g1MfieldEnabled",
+    //                 "Whether or not S1g1Mfield is enabled."
+    //                 "This parameter is only valuable for 802.11ah STAs and APs.",
+    //                 BooleanValue (false),
+    //                 MakeBooleanAccessor (&WifiPhy::GetS1g1Mfield,
+    //                                      &WifiPhy::SetS1g1Mfield),
+    //                 MakeBooleanChecker ())
+    // .AddAttribute ("S1gShortfieldEnabled",
+    //                 "Whether or not S1gShortfield is enabled."
+    //                 "This parameter is only valuable for 802.11ah STAs and APs.",
+    //                 BooleanValue (false),
+    //                 MakeBooleanAccessor (&WifiPhy::GetS1gShortfield,
+    //                                      &WifiPhy::SetS1gShortfield),
+    //                 MakeBooleanChecker ())
+    // .AddAttribute ("S1gLongfieldEnabled",
+    //                 "Whether or not S1gLongfield is enabled."
+    //                 "This parameter is only valuable for 802.11ah STAs and APs.",
+    //                 BooleanValue (false),
+    //                 MakeBooleanAccessor (&WifiPhy::GetS1gLongfield,
+    //                                      &WifiPhy::SetS1gLongfield),
+    //                 MakeBooleanChecker ())
     .AddAttribute ("ShortPlcpPreambleSupported",
                    "Whether or not short PLCP preamble is supported."
                    "This parameter is only valuable for 802.11b STAs and APs."
@@ -723,26 +723,26 @@ WifiPhy::SetGreenfield (bool greenfield)
   m_greenfield = greenfield;
 }
 
-void //802.11ah
-WifiPhy::SetS1g1Mfield (bool s1g1mfield)
-{
-  NS_LOG_FUNCTION (this << s1g1mfield);
-  m_s1g1mfield = s1g1mfield;
-}
+// void //802.11ah
+// WifiPhy::SetS1g1Mfield (bool s1g1mfield)
+// {
+//   NS_LOG_FUNCTION (this << s1g1mfield);
+//   m_s1g1mfield = s1g1mfield;
+// }
 
-void //802.11ah
-WifiPhy::SetS1gShortfield (bool s1gshortfield)
-{
-  NS_LOG_FUNCTION (this << s1gshortfield);
-  m_s1gshortfield = s1gshortfield;
-}
+// void //802.11ah
+// WifiPhy::SetS1gShortfield (bool s1gshortfield)
+// {
+//   NS_LOG_FUNCTION (this << s1gshortfield);
+//   m_s1gshortfield = s1gshortfield;
+// }
 
-void //802.11ah
-WifiPhy::SetS1gLongfield (bool s1glongfield)
-{
-  NS_LOG_FUNCTION (this << s1glongfield);
-  m_s1glongfield = s1glongfield;
-}
+// void //802.11ah
+// WifiPhy::SetS1gLongfield (bool s1glongfield)
+// {
+//   NS_LOG_FUNCTION (this << s1glongfield);
+//   m_s1glongfield = s1glongfield;
+// }
 
 bool
 WifiPhy::GetGreenfield (void) const
@@ -750,23 +750,23 @@ WifiPhy::GetGreenfield (void) const
   return m_greenfield;
 }
 
-bool //802.11ah
-WifiPhy::GetS1g1Mfield (void) const
-{
-  return m_s1g1mfield;
-}
+// bool //802.11ah
+// WifiPhy::GetS1g1Mfield (void) const
+// {
+//   return m_s1g1mfield;
+// }
 
-bool //802.11ah
-WifiPhy::GetS1gShortfield (void) const
-{
-  return m_s1gshortfield;
-}
+// bool //802.11ah
+// WifiPhy::GetS1gShortfield (void) const
+// {
+//   return m_s1gshortfield;
+// }
 
-bool //802.11ah
-WifiPhy::GetS1gLongfield (void) const
-{
-  return m_s1glongfield;
-}
+// bool //802.11ah
+// WifiPhy::GetS1gLongfield (void) const
+// {
+//   return m_s1glongfield;
+// }
 
 void
 WifiPhy::SetShortGuardInterval (bool shortGuardInterval)

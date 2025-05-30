@@ -2345,19 +2345,19 @@ public:
    *
    * \param greenfield Enable or disable S1g1Mfield
    */
-  void SetS1g1Mfield (bool s1g1mfield);
+  // void SetS1g1Mfield (bool s1g1mfield);
   /**802.11ah
    * Enable or disable S1gShortField support.
    *
    * \param greenfield Enable or disable S1gShortField
    */
-  void SetS1gShortfield (bool s1gshortfield);
+  // void SetS1gShortfield (bool s1gshortfield);
   /**802.11ah
    * Enable or disable S1gLongField support.
    *
    * \param greenfield Enable or disable S1gLongField
    */
-  void SetS1gLongfield (bool s1glongfield);
+  // void SetS1gLongfield (bool s1glongfield);
   /**
    * Return whether Greenfield is supported.
    *
@@ -2369,19 +2369,19 @@ public:
    *
    * \return true if S1g1Mfield is supported, false otherwise
    */
-  bool GetS1g1Mfield (void) const;
+  // bool GetS1g1Mfield (void) const;
   /**802.11ah
    * Return whether S1gShortField is supported.
    *
    * \return true if S1gShortField is supported, false otherwise
    */
-  bool GetS1gShortfield (void) const;
+  // bool GetS1gShortfield (void) const;
   /**802.11ah
    * Return whether S1gLongField is supported.
    *
    * \return true if S1gLongField is supported, false otherwise
    */
-  bool GetS1gLongfield (void) const;
+  // bool GetS1gLongfield (void) const;
   /**
    * Enable or disable short PLCP preamble.
    *
@@ -2761,9 +2761,9 @@ private:
   bool     m_ldpc;                  //!< Flag if LDPC is used
   bool     m_stbc;                  //!< Flag if STBC is used
   bool     m_greenfield;            //!< Flag if GreenField format is supported
-  bool     m_s1g1mfield;            //!< Flag if S1g1Mfield format is supported //802.11ah
-  bool     m_s1gshortfield;         //!< Flag if S1gShortField format is supported //802.11ah
-  bool     m_s1glongfield;          //!< Flag if S1gLongField format is supported //802.11ah
+  // bool     m_s1g1mfield;            //!< Flag if S1g1Mfield format is supported //802.11ah
+  // bool     m_s1gshortfield;         //!< Flag if S1gShortField format is supported //802.11ah
+  // bool     m_s1glongfield;          //!< Flag if S1gLongField format is supported //802.11ah
   bool     m_shortGuardInterval;    //!< Flag if HT/VHT short guard interval is supported
   bool     m_shortPreamble;         //!< Flag if short PLCP preamble is supported
   

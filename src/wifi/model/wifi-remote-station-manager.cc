@@ -907,21 +907,17 @@ WifiRemoteStationManager::DoGetCtsToSelfTxVector (void)
     }
   else if (defaultMode.GetModulationClass () == WIFI_MOD_CLASS_S1G)
     {
-      if (m_wifiPhy->GetS1g1Mfield () == 1)
+      if (m_wifiPhy->GetChannelWidth () == 1)
         {
           defaultPreamble = WIFI_PREAMBLE_S1G_1M;
         }
-      else if (m_wifiPhy->GetS1gShortfield () == 1)
+      else if (GetShortPreambleEnabled ())
         {
           defaultPreamble = WIFI_PREAMBLE_S1G_SHORT;
         }
-      else if (m_wifiPhy->GetS1gLongfield () == 1)
-        {
-          defaultPreamble = WIFI_PREAMBLE_S1G_LONG;
-        }
       else
         {
-          NS_FATAL_ERROR ("Unsupported S1G mode");
+          defaultPreamble = WIFI_PREAMBLE_S1G_LONG;
         }
     }
   else
@@ -1699,9 +1695,9 @@ WifiRemoteStationManager::LookupState (Mac48Address address) const
   state->m_shortGuardInterval = m_wifiPhy->GetShortGuardInterval ();
   state->m_guardInterval = m_wifiPhy->GetGuardInterval ().GetNanoSeconds ();
   state->m_greenfield = m_wifiPhy->GetGreenfield ();
-  state->m_s1g1mfield = m_wifiPhy->GetS1g1Mfield (); //802.11ah
-  state->m_s1gshortfield = m_wifiPhy->GetS1gShortfield (); //802.11ah
-  state->m_s1glongfield = m_wifiPhy->GetS1gLongfield (); //802.11ah
+  // state->m_s1g1mfield = m_wifiPhy->GetS1g1Mfield (); //802.11ah
+  // state->m_s1gshortfield = m_wifiPhy->GetS1gShortfield (); //802.11ah
+  // state->m_s1glongfield = m_wifiPhy->GetS1gLongfield (); //802.11ah
   state->m_streams = 1;
   state->m_ness = 0;
   state->m_aggregation = false;
@@ -1872,26 +1868,26 @@ WifiRemoteStationManager::GetGreenfieldSupported (Mac48Address address) const
   return LookupState (address)->m_greenfield;
 }
 
-bool
-WifiRemoteStationManager::GetS1g1MfieldSupported (Mac48Address address) const
-{
-  //Used by mac low to choose format
-  return LookupState (address)->m_s1g1mfield;
-}
+// bool
+// WifiRemoteStationManager::GetS1g1MfieldSupported (Mac48Address address) const
+// {
+//   //Used by mac low to choose format
+//   return LookupState (address)->m_s1g1mfield;
+// }
 
-bool
-WifiRemoteStationManager::GetS1gShortfieldSupported (Mac48Address address) const
-{
-  //Used by mac low to choose format
-  return LookupState (address)->m_s1gshortfield;
-}
+// bool
+// WifiRemoteStationManager::GetS1gShortfieldSupported (Mac48Address address) const
+// {
+//   //Used by mac low to choose format
+//   return LookupState (address)->m_s1gshortfield;
+// }
 
-bool
-WifiRemoteStationManager::GetS1gLongfieldSupported (Mac48Address address) const
-{
-  //Used by mac low to choose format
-  return LookupState (address)->m_s1glongfield;
-}
+// bool
+// WifiRemoteStationManager::GetS1gLongfieldSupported (Mac48Address address) const
+// {
+//   //Used by mac low to choose format
+//   return LookupState (address)->m_s1glongfield;
+// }
 
 WifiMode
 WifiRemoteStationManager::GetDefaultMode (void) const
@@ -2284,23 +2280,18 @@ WifiRemoteStationManager::GetPreambleForTransmission (WifiMode mode, Mac48Addres
     }
   else if (mode.GetModulationClass () == WIFI_MOD_CLASS_S1G) //802.11ah
     {
-      if (GetS1g1MfieldSupported (dest) && m_wifiPhy->GetS1g1Mfield ())
+      if (m_wifiPhy->GetChannelWidth () == 1)
         {
           preamble = WIFI_PREAMBLE_S1G_1M;
         }
-      else if (GetS1gShortfieldSupported (dest) && m_wifiPhy->GetS1gShortfield ())
+      else if (GetShortPreambleEnabled ())
         {
           preamble = WIFI_PREAMBLE_S1G_SHORT;
         }
-      else if (GetS1gLongfieldSupported (dest) && m_wifiPhy->GetS1gLongfield ())
+      else
         {
           preamble = WIFI_PREAMBLE_S1G_LONG;
         }
-      else
-        {
-          NS_FATAL_ERROR ("Unsupported S1G mode");
-        }
-      
     }
   else if (mode.GetModulationClass () == WIFI_MOD_CLASS_HT && m_wifiPhy->GetGreenfield () && GetGreenfieldSupported (dest) && !GetUseGreenfieldProtection ())
     {

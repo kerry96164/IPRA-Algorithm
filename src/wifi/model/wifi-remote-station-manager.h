@@ -437,7 +437,7 @@ public:
    * \return true if S1g1Mfield is supported by the station,
    *         false otherwise
    */
-  bool GetS1g1MfieldSupported (Mac48Address address) const;
+  // bool GetS1g1MfieldSupported (Mac48Address address) const;
   /** 802.11ah
    * Return whether the station supports S1gShortfield or not.
    *
@@ -446,7 +446,7 @@ public:
    * \return true if S1gShortfield is supported by the station,
    *         false otherwise
    */
-  bool GetS1gShortfieldSupported (Mac48Address address) const;
+  // bool GetS1gShortfieldSupported (Mac48Address address) const;
   /** 802.11ah
    * Return whether the station supports S1gLongfield or not.
    *
@@ -455,7 +455,7 @@ public:
    * \return true if S1gLongfield is supported by the station,
    *         false otherwise
    */
-  bool GetS1gLongfieldSupported (Mac48Address address) const;
+  // bool GetS1gLongfieldSupported (Mac48Address address) const;
   /**
    * Return whether the station supports short PLCP preamble or not.
    *
