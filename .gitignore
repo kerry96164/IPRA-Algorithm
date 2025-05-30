@@ -38,6 +38,7 @@ build-dir/
 build/
 /.cproject
 /.project
+.waf*
 
 version.cache
 
