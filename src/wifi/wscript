@@ -3,6 +3,7 @@
 def build(bld):
     obj = bld.create_ns3_module('wifi', ['network', 'propagation', 'energy', 'spectrum', 'antenna', 'mobility'])
     obj.source = [
+        'model/s1g-capabilities.cc',
 		'model/busy-tone-phy.cc',
 		'model/busy-tone-channel.cc',
         'model/wifi-utils.cc',
@@ -98,6 +99,7 @@ def build(bld):
         'helper/wifi-mac-helper.cc',
 		'helper/busy-tone-channel-helper.cc',
 		'helper/busy-tone-phy-helper.cc',
+        'helper/s1g-wifi-mac-helper.cc'
         ]
 
     obj_test = bld.create_ns3_module_test_library('wifi')
@@ -115,6 +117,7 @@ def build(bld):
     headers = bld(features='ns3header')
     headers.module = 'wifi'
     headers.source = [
+        'model/s1g-capabilities.h',
 		'model/busy-tone-phy.h',
 		'model/busy-tone-channel.h',
         'model/wifi-utils.h',
@@ -212,6 +215,7 @@ def build(bld):
         'helper/wifi-mac-helper.h',
 		'helper/busy-tone-channel-helper.h',
 		'helper/busy-tone-phy-helper.h',
+        'helper/s1g-wifi-mac-helper.h'
         ]
 
     if bld.env['ENABLE_GSL']:

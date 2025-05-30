@@ -32,6 +32,10 @@
 #include "edca-parameter-set.h"
 #include "ns3/random-variable-stream.h"
 
+/**
+ * TODO: not support for 802.11ah
+ */
+
 namespace ns3 {
 
 /**

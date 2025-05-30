@@ -252,6 +252,12 @@ public:
    * \return the VHT capability that we support
    */
   VhtCapabilities GetVhtCapabilities (void) const;
+  /** 802.11ah
+   * Return the S1G capability of the device.
+   *
+   * \return the S1G capability that we support
+   */
+  S1gCapabilities GetS1gCapabilities (void) const;
   /**
    * Return the HE capability of the device.
    *
@@ -517,6 +523,47 @@ protected:
    * \return true if VHT is supported, false otherwise
    */
   bool GetVhtSupported () const;
+
+  /** 802.11ah
+   * This Boolean is set \c true iff this WifiMac is to model
+   * 802.11ah. It is exposed through the attribute system.
+   */
+  bool m_s1gSupported;
+  /** 802.11ah
+   * Enable or disable S1G support for the device.
+   *
+   * \param enable whether S1G is supported
+   */
+  void SetS1gSupported (bool enable);
+  /** 802.11ah
+   * Return whether the device supports S1G.
+   *
+   * \return true if S1G is supported, false otherwise
+   */
+  bool GetS1gSupported () const;
+  
+  /** 802.11ah
+   * This variable is used to store the S1G STA type.
+   * For non-AP STA, 1 for sensor STA, 2 for non-sensor STA;
+   * for AP STA, 1 for sensor STA, 2 for non-sensor STA, 0 for both STA.
+   */
+  uint8_t m_s1gStaType;
+  /** 802.11ah
+   * Enable or disable S1G STA type for the device.
+   * For non-AP STA, 1 for sensor STA, 2 for non-sensor STA;
+   * for AP STA, 1 for sensor STA, 2 for non-sensor STA, 0 for both STA.
+   *
+   * \param type the S1G STA type
+   */
+  void SetS1gStaType (uint8_t type);
+  /** 802.11ah
+   * Return the S1G STA type.
+   * For non-AP STA, 1 for sensor STA, 2 for non-sensor STA;
+   * for AP STA, 1 for sensor STA, 2 for non-sensor STA, 0 for both STA.
+   * 
+   * \return the S1G STA type
+   */
+  uint8_t GetS1gStaType (void) const;
 
   /**
    * This Boolean is set \c true iff this WifiMac is to model

@@ -68,6 +68,10 @@ ConvertGuardIntervalToNanoSeconds (WifiMode mode, bool htShortGuardInterval, Tim
     {
       gi = htShortGuardInterval ? 400 : 800;
     }
+  else if (mode.GetModulationClass () == WIFI_MOD_CLASS_S1G)
+    {
+      gi = htShortGuardInterval ? 4000 : 8000; //802.11ah Table 23-4  Guard interval duration
+    }
   else
     {
       gi = 800;

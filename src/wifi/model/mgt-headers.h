@@ -20,6 +20,9 @@
  *          Mirko Banchi <mk.banchi@gmail.com>
  */
 
+/**
+ * TODO: add support for 802.11ah S1G
+ */
 #ifndef MGT_HEADERS_H
 #define MGT_HEADERS_H
 
@@ -32,11 +35,17 @@
 #include "ht-operation.h"
 #include "vht-capabilities.h"
 #include "vht-operation.h"
+//#include "s1g-capabilities.h"
+//#include "s1g-operation.h"
 #include "erp-information.h"
 #include "edca-parameter-set.h"
 #include "he-capabilities.h"
 
 namespace ns3 {
+
+/**
+ * TODO: Missing MgtDisAssocRequestHeader, used in sta-wifi-mac.* for 802.11ah.
+ */
 
 /**
  * \ingroup wifi

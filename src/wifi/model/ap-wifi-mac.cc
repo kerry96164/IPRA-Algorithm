@@ -20,6 +20,9 @@
  *          Mirko Banchi <mk.banchi@gmail.com>
  */
 
+/**
+ * TODO: add support for 802.11ah S1G
+ */
 #include "ap-wifi-mac.h"
 #include "ns3/log.h"
 #include "ns3/simulator.h"
@@ -785,6 +788,9 @@ ApWifiMac::TxFailed (const WifiMacHeader &hdr)
     }
 }
 
+/**
+ * TODO: Add support for 802.11ah
+ */
 void
 ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
 {

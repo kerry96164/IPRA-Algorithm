@@ -58,6 +58,8 @@ enum WifiModulationClass
   WIFI_MOD_CLASS_HT,
   /** VHT PHY (Clause 22) */
   WIFI_MOD_CLASS_VHT,
+  /** S1G PHY (Clause 23) */ //802.11ah
+  WIFI_MOD_CLASS_S1G,
   /** HE PHY (Clause 26) */
   WIFI_MOD_CLASS_HE
 };

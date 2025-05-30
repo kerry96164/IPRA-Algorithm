@@ -253,6 +253,96 @@ RegularWifiMac::GetVhtCapabilities (void) const
   return capabilities;
 }
 
+//802.11ah
+S1gCapabilities
+RegularWifiMac::GetS1gCapabilities (void) const
+{
+  NS_LOG_FUNCTION (this);
+  S1gCapabilities capabilities;
+  if (m_s1gSupported)
+    {
+      capabilities.SetS1gSupported (1);
+      switch (m_phy->GetChannelWidth ())
+        {
+          case 2:
+            capabilities.SetSupportedChannelWidthSet (0);
+            break;
+          case 4:
+            capabilities.SetSupportedChannelWidthSet (1);
+            break;
+          case 8:
+            capabilities.SetSupportedChannelWidthSet (2);
+            break;
+          case 16:
+            capabilities.SetSupportedChannelWidthSet (3);
+            break;
+          default:
+            NS_ASSERT_MSG (false, "Unsupported channel width");
+        }
+      uint32_t maxMpduLength = std::max (std::max (m_beMaxAmsduSize, m_bkMaxAmsduSize), std::max (m_voMaxAmsduSize, m_viMaxAmsduSize)) + 56; //see section 10.12 of 11ah standard
+      capabilities.SetMaxMpduLength (uint8_t (maxMpduLength > 3895)); //0 if 3895, 1 if 7991
+      capabilities.SetRxLdpc (m_phy->GetLdpc ());
+      capabilities.SetShortGuardIntervalFor1Mhz ((m_phy->GetChannelWidth () == 1) && m_phy->GetShortGuardInterval ());
+      capabilities.SetShortGuardIntervalFor2Mhz ((m_phy->GetChannelWidth () == 2) && m_phy->GetShortGuardInterval ());
+      capabilities.SetShortGuardIntervalFor4Mhz ((m_phy->GetChannelWidth () == 4) && m_phy->GetShortGuardInterval ());
+      capabilities.SetShortGuardIntervalFor8Mhz ((m_phy->GetChannelWidth () == 8) && m_phy->GetShortGuardInterval ());
+      capabilities.SetShortGuardIntervalFor16Mhz ((m_phy->GetChannelWidth () == 16) && m_phy->GetShortGuardInterval ());
+      double maxAmpduLengthExponent = std::max (std::ceil ((std::log (std::max (std::max (m_beMaxAmpduSize, m_bkMaxAmpduSize), std::max (m_voMaxAmpduSize, m_viMaxAmpduSize))
+                                                                      + 1.0)
+                                                            / std::log (2.0))
+                                                           - 13.0),
+                                                0.0);
+      NS_ASSERT (maxAmpduLengthExponent >= 0 && maxAmpduLengthExponent <= 255);
+      capabilities.SetMaxAmpduLengthExponent (std::max<uint8_t> (3, static_cast<uint8_t> (maxAmpduLengthExponent))); //0 to 3 for S1G
+      capabilities.SetStaTypeSupport (m_s1gStaType);
+      uint8_t maxMcs = 0;
+      for (uint8_t i = 0; i < m_phy->GetNMcs (); i++)
+        {
+          WifiMode mcs = m_phy->GetMcs (i);
+          if ((mcs.GetModulationClass () == WIFI_MOD_CLASS_S1G)
+              && (mcs.GetMcsValue () > maxMcs))
+            {
+              maxMcs = mcs.GetMcsValue ();
+            }
+        }
+      if (maxMcs == 10)
+        {
+          std::cerr << "Custom Warning: " << "Not support S1G MCS 10 yet. Set to 9" << std::endl;
+          // Set to 9 because 10 is not supported in the current implementation
+          maxMcs = 9;
+        }
+      // Support same MaxMCS for each spatial stream
+      uint8_t maxRxNss = m_phy->GetMaxSupportedRxSpatialStreams ();
+      uint8_t maxTxNss = m_phy->GetMaxSupportedTxSpatialStreams ();
+      NS_ASSERT (maxRxNss > 0 && maxRxNss < 5);
+      NS_ASSERT (maxTxNss > 0 && maxTxNss < 5);
+      for (uint8_t nss = 1; nss <= maxRxNss; nss++)
+        {
+          capabilities.SetRxS1gMcsMap (maxMcs, nss);
+        }
+      for (uint8_t nss = 1; nss <= maxTxNss; nss++)
+        {
+          capabilities.SetTxS1gMcsMap (maxMcs, nss);
+        }
+      uint64_t maxSupportedRateLGI = 0; //in bit/s
+      for (uint8_t i = 0; i < m_phy->GetNMcs (); i++)
+        {
+          WifiMode mcs = m_phy->GetMcs (i);
+          if (mcs.GetModulationClass () != WIFI_MOD_CLASS_S1G || !mcs.IsAllowed (m_phy->GetChannelWidth (), 1))
+            {
+              continue;
+            }
+          if (mcs.GetDataRate (m_phy->GetChannelWidth ()) > maxSupportedRateLGI)
+            {
+              maxSupportedRateLGI = mcs.GetDataRate (m_phy->GetChannelWidth ());
+              NS_LOG_DEBUG ("Updating maxSupportedRateLGI to " << maxSupportedRateLGI);
+            }
+        }
+      capabilities.SetRxHighestSupportedLgiDataRate (maxSupportedRateLGI / 1e6); //in Mbit/s
+    }
+  return capabilities;
+}
+
 HeCapabilities
 RegularWifiMac::GetHeCapabilities (void) const
 {
@@ -580,6 +670,32 @@ RegularWifiMac::GetQosSupported () const
   return m_qosSupported;
 }
 
+void //802.11ah
+RegularWifiMac::SetS1gSupported (bool enable)
+{
+  NS_LOG_FUNCTION (this << enable);
+  m_s1gSupported = enable;
+  if (enable)
+    {
+      SetQosSupported (true);
+    }
+  if (!enable)
+    {
+      DisableAggregation ();
+    }
+  else
+    {
+      EnableAggregation ();
+    }
+}
+
+void //802.11ah
+RegularWifiMac::SetS1gStaType (uint8_t type)
+{
+  NS_LOG_FUNCTION (this);
+  m_s1gStaType = type;
+}
+
 void
 RegularWifiMac::SetVhtSupported (bool enable)
 {
@@ -635,6 +751,19 @@ RegularWifiMac::SetHeSupported (bool enable)
     {
       EnableAggregation ();
     }
+}
+
+bool //802.11ah
+RegularWifiMac::GetS1gSupported () const
+{
+  return m_s1gSupported;
+}
+
+uint8_t //802.11ah
+RegularWifiMac::GetS1gStaType (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_s1gStaType;
 }
 
 bool
@@ -1108,12 +1237,25 @@ RegularWifiMac::GetTypeId (void)
                    MakeBooleanAccessor (&RegularWifiMac::SetVhtSupported,
                                         &RegularWifiMac::GetVhtSupported),
                    MakeBooleanChecker ())
+    .AddAttribute ("S1gSupported", //802.11ah
+                    "This Boolean attribute is set to enable 802.11ah support at this STA.",
+                    BooleanValue (false),
+                    MakeBooleanAccessor (&RegularWifiMac::SetS1gSupported,
+                                         &RegularWifiMac::GetS1gSupported),
+                    MakeBooleanChecker ())
     .AddAttribute ("HeSupported",
                    "This Boolean attribute is set to enable 802.11ax support at this STA.",
                    BooleanValue (false),
                    MakeBooleanAccessor (&RegularWifiMac::SetHeSupported,
                                         &RegularWifiMac::GetHeSupported),
                    MakeBooleanChecker ())
+    .AddAttribute ("S1gStaType", //802.11ah
+                    "S1g STA type, for non-AP STA, 1 for sensor STA, 2 for non-sensor STA;"
+                    "for AP STA, 1 for sensor STA, 2 for non-sensor STA, 0 for both STA",
+                    UintegerValue (1),
+                    MakeUintegerAccessor (&RegularWifiMac::SetS1gStaType,
+                                         &RegularWifiMac::GetS1gStaType),
+                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("CtsToSelfSupported",
                    "Use CTS to Self when using a rate that is not in the basic rate set.",
                    BooleanValue (false),
@@ -1304,6 +1446,11 @@ RegularWifiMac::FinishConfigureStandard (WifiPhyStandard standard)
     case WIFI_PHY_STANDARD_80211a:
     case WIFI_PHY_STANDARD_80211_10MHZ:
     case WIFI_PHY_STANDARD_80211_5MHZ:
+      cwmin = 15;
+      cwmax = 1023;
+      break;
+    case WIFI_PHY_STANDARD_80211ah: //802.11ah
+      SetS1gSupported (true);
       cwmin = 15;
       cwmax = 1023;
       break;

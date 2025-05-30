@@ -51,6 +51,8 @@ enum WifiPhyStandard
   WIFI_PHY_STANDARD_80211n_5GHZ,
   /** VHT PHY (clause 22) */
   WIFI_PHY_STANDARD_80211ac,
+  /** S1G PHY (clause 23) */
+  WIFI_PHY_STANDARD_80211ah, //802.11ah
   /** HE PHY for the 2.4 GHz band (clause 26) */
   WIFI_PHY_STANDARD_80211ax_2_4GHZ,
   /** HE PHY for the 5 GHz band (clause 26) */

@@ -20,6 +20,9 @@
  *          Mirko Banchi <mk.banchi@gmail.com>
  */
 
+/**
+ * TODO: add support for 802.11ah S1G
+ */
 #include "mgt-headers.h"
 #include "ns3/simulator.h"
 

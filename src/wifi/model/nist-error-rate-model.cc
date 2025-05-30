@@ -280,6 +280,7 @@ NistErrorRateModel::GetChunkSuccessRate (WifiMode mode, WifiTxVector txVector, d
       || mode.GetModulationClass () == WIFI_MOD_CLASS_OFDM
       || mode.GetModulationClass () == WIFI_MOD_CLASS_HT
       || mode.GetModulationClass () == WIFI_MOD_CLASS_VHT
+      || mode.GetModulationClass () == WIFI_MOD_CLASS_S1G //802.11ah
       || mode.GetModulationClass () == WIFI_MOD_CLASS_HE)
     {
       if (mode.GetConstellationSize () == 2)

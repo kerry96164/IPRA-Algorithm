@@ -112,6 +112,10 @@ AdhocWifiMac::Enqueue (Ptr<const Packet> packet, Mac48Address to)
         {
           m_stationManager->AddStationVhtCapabilities (to, GetVhtCapabilities());
         }
+      if (m_s1gSupported)
+        {
+          m_stationManager->AddStationS1gCapabilities (to, GetS1gCapabilities());
+        }
       if (m_heSupported)
         {
           m_stationManager->AddStationHeCapabilities (to, GetHeCapabilities());
@@ -280,6 +284,10 @@ AdhocWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
       if (m_vhtSupported)
         {
           m_stationManager->AddStationVhtCapabilities (from, GetVhtCapabilities());
+        }
+      if (m_s1gSupported)
+        {
+          m_stationManager->AddStationS1gCapabilities (from, GetS1gCapabilities());
         }
       if (m_heSupported)
         {

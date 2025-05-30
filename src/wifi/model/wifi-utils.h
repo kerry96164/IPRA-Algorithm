@@ -71,7 +71,7 @@ double RatioToDb (double ratio);
  * Convert the guard interval to nanoseconds based on the wifimode.
  *
  * \param mode the wifimode
- * \param htShortGuardInterval whether HT/VHT short guard interval is enabled
+ * \param htShortGuardInterval whether HT/VHT/S1G short guard interval is enabled
  * \param heGuardInterval the HE guard interval duration
  *
  * \return the guard interval duration in nanoseconds

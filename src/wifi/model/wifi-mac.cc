@@ -318,6 +318,9 @@ WifiMac::ConfigureStandard (WifiPhyStandard standard)
     case WIFI_PHY_STANDARD_80211ac:
       Configure80211ac ();
       break;
+    case WIFI_PHY_STANDARD_80211ah:
+      Configure80211ah ();
+      break;
     case WIFI_PHY_STANDARD_80211ax_2_4GHZ:
       Configure80211ax_2_4Ghz ();
       break;
@@ -420,6 +423,26 @@ WifiMac::Configure80211ac (void)
 {
   NS_LOG_FUNCTION (this);
   Configure80211n_5Ghz ();
+}
+
+void //802.11ah
+WifiMac::Configure80211ah (void)   
+{
+  //802.11ah-2016 Table 23-37-S1G PHY characteristics
+  SetSifs (MicroSeconds (160));
+  SetSlot (MicroSeconds (52));
+
+  //802.11ah-2016 10.3.7 DCF timing relations
+  //Eifs = Sifs + ACKTxTime + Difs
+  //ACKTxTime including preamble, PHY header,
+  //and any additional PHY dependent information, 
+  //at the lowest PHY mandatory rate.
+  SetEifsNoDifs (MicroSeconds (160 + 1120)); //, have no idea how to calculate ACKTxTime, choose
+  SetPifs (MicroSeconds (160 + 52));
+  SetCtsTimeout (MicroSeconds (160 + 1120 + 52 + GetDefaultMaxPropagationDelay ().GetMicroSeconds () * 2));//
+  SetAckTimeout (MicroSeconds (160 + 1120 + 52 + GetDefaultMaxPropagationDelay ().GetMicroSeconds () * 2));//
+  SetBasicBlockAckTimeout (GetSifs () + GetSlot () + GetDefaultBasicBlockAckDelay () + GetDefaultMaxPropagationDelay () * 2);
+  SetCompressedBlockAckTimeout (GetSifs () + GetSlot () + GetDefaultCompressedBlockAckDelay () + GetDefaultMaxPropagationDelay () * 2);
 }
 
 void

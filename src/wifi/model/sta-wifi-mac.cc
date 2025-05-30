@@ -19,7 +19,9 @@
  * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  *          Mirko Banchi <mk.banchi@gmail.com>
  */
-
+/**
+ * TODO: add support for 802.11ah S1G
+ */
 #include "sta-wifi-mac.h"
 #include "ns3/log.h"
 #include "ns3/simulator.h"
@@ -416,6 +418,9 @@ StaWifiMac::Enqueue (Ptr<const Packet> packet, Mac48Address to)
     }
 }
 
+/**
+ * TODO: Add support for 802.11ah
+ */
 void
 StaWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
 {

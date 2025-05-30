@@ -77,6 +77,12 @@ YansWifiPhy::StartTx (Ptr<Packet> packet, WifiTxVector txVector, Time txDuration
 {//std::cout<<"starttx"<<" "<<Simulator::Now().GetSeconds()<<std::endl;WToDbm(txVector.GetTxPowerFromVector())
 //std::cout<<WToDbm(txVector.GetTxPowerFromVector())<<std::endl;
   NS_LOG_DEBUG ("Start transmission: signal power before antenna gain=" << GetPowerDbm (txVector.GetTxPowerLevel ()) << "dBm");
+  //m_channel->Send (this, packet, GetPowerDbm (txVector.GetTxPowerLevel ()) + GetTxGain (), txDuration);
+  /**
+   * 上面那行是原始程式碼
+   * 下面是liang修改的
+   * 需確認用途
+   */
   if(Simulator::Now().GetSeconds() > 1)
   m_channel->Send (this, packet,WToDbm(txVector.GetTxPowerFromVector()), txDuration);
   else 

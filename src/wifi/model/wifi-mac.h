@@ -308,6 +308,7 @@ public:
    * \sa WifiMac::Configure80211n_2_4Ghz
    * \sa WifiMac::Configure80211n_5Ghz
    * \sa WifiMac::Configure80211ac
+   * \sa WifiMac::Configure80211ah
    * \sa WifiMac::Configure80211ax_2_4Ghz
    * \sa WifiMac::Configure80211ax_5Ghz
    */
@@ -456,6 +457,11 @@ private:
   * Sifs, Slot, EifsNoDifs, Pifs, CtsTimeout, and AckTimeout.
   */
   void Configure80211ac (void);
+  /** 802.11ah
+  * This method sets 802.11ah standards-compliant defaults for following attributes:
+  * Sifs, Slot, EifsNoDifs, Pifs, CtsTimeout, and AckTimeout.
+  */
+  void Configure80211ah (void);
   /**
    * This method sets 802.11ax 2.4 GHz standards-compliant defaults for following attributes:
    * Sifs, Slot, EifsNoDifs, Pifs, CtsTimeout, and AckTimeout.

@@ -83,6 +83,25 @@ WifiMode::IsAllowed (uint8_t channelWidth, uint8_t nss) const
           return false;
         }
     }
+  else if (item->modClass == WIFI_MOD_CLASS_S1G) //802.11ah
+    {
+      if (item->mcsValue == 10 && (channelWidth != 1 || nss != 1) ) //802.11ah MCS10 only supports 1x1 1MHz
+        {
+          return false;
+        }
+      if (item->mcsValue == 9 && channelWidth == 2 && nss != 3)
+        {
+          return false;
+        }
+      if (item->mcsValue == 6 && channelWidth == 8 && nss == 3)
+        {
+          return false;
+        }
+      if (item->mcsValue == 9 && channelWidth == 16 && nss == 3)
+        {
+          return false;
+        }
+    }
   else
     {
       //We should not go here!
@@ -130,7 +149,14 @@ WifiMode::GetPhyRate (WifiTxVector txVector) const
 uint64_t
 WifiMode::GetDataRate (uint8_t channelWidth) const
 {
-  return GetDataRate (channelWidth, 800, 1);
+  if (channelWidth == 1 || channelWidth == 2 || channelWidth == 4 || channelWidth == 8 || channelWidth == 16)
+    { //802.11ah S1G
+      return GetDataRate (channelWidth, 8000, 1); //802.11ah uses 8000 ns GI
+    }
+  else
+    { //non-S1G
+      return GetDataRate (channelWidth, 800, 1);
+    }
 }
 
 uint64_t
@@ -261,6 +287,56 @@ WifiMode::GetDataRate (uint8_t channelWidth, uint16_t guardInterval, uint8_t nss
 
       dataRate = lrint (ceil (symbolRate * usableSubCarriers * numberOfBitsPerSubcarrier * codingRate));
     }
+  else if (item->modClass == WIFI_MOD_CLASS_S1G) //802.11ah
+    {
+      NS_ASSERT_MSG (IsAllowed (channelWidth, nss), "S1G MCS " << (uint16_t)item->mcsValue << " forbidden at " << (uint16_t)channelWidth << " MHz when NSS is " << (uint16_t)nss);
+
+      NS_ASSERT (guardInterval == 8000 || guardInterval == 4000); //802.11ah uses 4000/8000 ns GI
+      symbolRate = (1 / (32 + ((double)guardInterval / 1000))) * 1e6;
+
+      NS_ASSERT_MSG (channelWidth == 1 || channelWidth == 2 || channelWidth == 4 || channelWidth == 8 || channelWidth == 16, "S1G does not have " << (uint16_t)channelWidth << " MHz channel width.");
+      switch (channelWidth)
+        {
+        case 1:
+        default:
+          usableSubCarriers = 24;
+          break;
+        case 2:
+          usableSubCarriers = 52;
+          break;
+        case 4:
+          usableSubCarriers = 108;
+          break;
+        case 8:
+          usableSubCarriers = 234;
+          break;
+        case 16:
+          usableSubCarriers = 468;
+          break;
+        }
+      
+      switch (GetCodeRate ())
+        {
+        case WIFI_CODE_RATE_5_6:
+          codingRate = (5.0 / 6.0);
+          break;
+        case WIFI_CODE_RATE_3_4:
+          codingRate = (3.0 / 4.0);
+          break;
+        case WIFI_CODE_RATE_2_3:
+          codingRate = (2.0 / 3.0);
+          break;
+        case WIFI_CODE_RATE_1_2:
+          codingRate = (1.0 / 2.0);
+          break;
+        case WIFI_CODE_RATE_UNDEFINED:
+        default:
+          NS_FATAL_ERROR ("trying to get datarate for a mcs without any coding rate defined with nss: " << (uint16_t) nss);
+          break;
+        }
+
+      dataRate = lrint (ceil (symbolRate * usableSubCarriers * numberOfBitsPerSubcarrier * codingRate));
+    } //end of 802.11ah
   else if (item->modClass == WIFI_MOD_CLASS_HE)
     {
       NS_ASSERT (guardInterval == 800 || guardInterval == 1600 || guardInterval == 3200);
@@ -310,6 +386,7 @@ WifiMode::GetDataRate (uint8_t channelWidth, uint16_t guardInterval, uint8_t nss
       NS_ASSERT ("undefined datarate for the modulation class!");
     }
   dataRate *= nss; // number of spatial streams
+  std::cout<<"dataRate = "<<dataRate<< " = " << symbolRate << " * " << usableSubCarriers << " * " << numberOfBitsPerSubcarrier << " * " << codingRate << std::endl; //kerry test
   return dataRate;
 }
 
@@ -344,6 +421,29 @@ WifiMode::GetCodeRate (void) const
         case 0:
         case 1:
         case 3:
+          return WIFI_CODE_RATE_1_2;
+        case 2:
+        case 4:
+        case 6:
+        case 8:
+          return WIFI_CODE_RATE_3_4;
+        case 5:
+          return WIFI_CODE_RATE_2_3;
+        case 7:
+        case 9:
+          return WIFI_CODE_RATE_5_6;
+        default:
+          return WIFI_CODE_RATE_UNDEFINED;
+        }
+    }
+  else if (item->modClass == WIFI_MOD_CLASS_S1G) //802.11ah
+    {
+      switch (item->mcsValue)
+        {
+        case 0:
+        case 1:
+        case 3:
+        case 10:
           return WIFI_CODE_RATE_1_2;
         case 2:
         case 4:
@@ -440,6 +540,30 @@ WifiMode::GetConstellationSize (void) const
           return 0;
         }
     }
+  else if (item->modClass == WIFI_MOD_CLASS_S1G) //802.11ah
+    {
+      switch (item->mcsValue)
+        {
+        case 0:
+        case 10:
+          return 2;
+        case 1:
+        case 2:
+          return 4;
+        case 3:
+        case 4:
+          return 16;
+        case 5:
+        case 6:
+        case 7:
+          return 64;
+        case 8:
+        case 9:
+          return 256;
+        default:
+          return 0;
+        }
+    }
   else
     {
       return item->constellationSize;
@@ -465,7 +589,7 @@ uint8_t
 WifiMode::GetMcsValue (void) const
 {
   WifiModeFactory::WifiModeItem *item = WifiModeFactory::GetFactory ()->Get (m_uid);
-  if (item->modClass == WIFI_MOD_CLASS_HT || item->modClass == WIFI_MOD_CLASS_VHT || item->modClass == WIFI_MOD_CLASS_HE)
+  if (item->modClass == WIFI_MOD_CLASS_HT || item->modClass == WIFI_MOD_CLASS_VHT || item->modClass == WIFI_MOD_CLASS_S1G || item->modClass == WIFI_MOD_CLASS_HE) //add 802.11ah
     {
       return item->mcsValue;
     }
@@ -650,6 +774,26 @@ WifiMode::IsHigherDataRate (WifiMode mode) const
               return false;
             }
         }
+    case WIFI_MOD_CLASS_S1G: //802.11ah
+      if (mode.GetModulationClass () == WIFI_MOD_CLASS_S1G)
+        {
+          if (GetConstellationSize () > mode.GetConstellationSize ())
+            {
+              return true;
+            }
+          else if (GetConstellationSize () == mode.GetConstellationSize ())
+            {
+              return IsHigherCodeRate (mode);
+            }
+          else
+            {
+              return false;
+            }
+        }
+      else
+        {
+          return false;
+        }
     default:
       NS_FATAL_ERROR ("Modulation class not defined");
       return false;
@@ -726,8 +870,8 @@ WifiModeFactory::CreateWifiMcs (std::string uniqueName,
   item->uniqueUid = uniqueName;
   item->modClass = modClass;
 
-  //The modulation class must be either HT, VHT or HE
-  NS_ASSERT (modClass == WIFI_MOD_CLASS_HT || modClass == WIFI_MOD_CLASS_VHT || modClass == WIFI_MOD_CLASS_HE);
+  //The modulation class must be either HT, VHT, HE or S1G.
+  NS_ASSERT (modClass == WIFI_MOD_CLASS_HT || modClass == WIFI_MOD_CLASS_VHT || modClass == WIFI_MOD_CLASS_HE || modClass == WIFI_MOD_CLASS_S1G); //add 802.11ah
 
   item->mcsValue = mcsValue;
   //fill unused items with dummy values

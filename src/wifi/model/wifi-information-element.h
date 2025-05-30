@@ -158,7 +158,6 @@ typedef uint8_t WifiInformationElementId;
 #define IE_MCCAOP TEARDOWN                      ((WifiInformationElementId)124)
 #define IE_GANN                                 ((WifiInformationElementId)125)
 #define IE_RANN                                 ((WifiInformationElementId)126)
-// 67 to 126 are reserved
 #define IE_EXTENDED_CAPABILITIES                ((WifiInformationElementId)127)
 // 128 to 129 are reserved
 #define IE_PREQ                                 ((WifiInformationElementId)130)
@@ -183,8 +182,37 @@ typedef uint8_t WifiInformationElementId;
 #define IE_AID                                  ((WifiInformationElementId)197)
 #define IE_QUIET_CHANNEL                        ((WifiInformationElementId)198)
 #define IE_OPERATING_MODE_NOTIFICATION          ((WifiInformationElementId)199)
-// 200 to 220 are reserved
+// 200 to 206 are reserved
+//defined in 802.11ah-2016 Table 9-77
+#define IE_S1G_OPEN_LOOP                        ((WifiInformationElementId)207)
+#define IE_RPS                                  ((WifiInformationElementId)208)
+#define IE_PAGE_SLICE                           ((WifiInformationElementId)209)
+#define IE_AID_REQUEST                          ((WifiInformationElementId)210)
+#define IE_AID_RESPONSE                         ((WifiInformationElementId)211)
+#define IE_S1G_SECTOR_OPERATION                 ((WifiInformationElementId)212)
+#define IE_S1G_BEACON_COMPATIBILITY             ((WifiInformationElementId)213)
+#define IE_SHORT_BEACON_INTERVAL                ((WifiInformationElementId)214)
+#define IE_CHANGE_SEQUENCE                      ((WifiInformationElementId)215)
+#define IE_TWT                                  ((WifiInformationElementId)216)
+#define IE_S1G_CAPABILITIES                     ((WifiInformationElementId)217)
+// 218 to 219 are reserved in 802.11ah-2016
+#define IE_SUBCHANNEL_SELECTIVE_TRANSMISSION    ((WifiInformationElementId)220)
 #define IE_VENDOR_SPECIFIC                      ((WifiInformationElementId)221)
+#define IE_AUTHENTICATION_CONTROL               ((WifiInformationElementId)222)
+#define IE_TSF_TIMER_ACCURACY                   ((WifiInformationElementId)223)
+#define IE_S1G_RELAY                            ((WifiInformationElementId)224)
+#define IE_RECHABLE_ADDRESS                     ((WifiInformationElementId)225)
+#define IE_S1G_RELAY_DISCOVERY                  ((WifiInformationElementId)226)
+// 227 is reserved in 802.11ah-2016
+#define IE_AID_ANNOUNCEMENT                     ((WifiInformationElementId)228)
+#define IE_PV1_PROBE_RESPONSE_OPTION            ((WifiInformationElementId)229)
+#define IE_EL_OPERATION                         ((WifiInformationElementId)230)
+#define IE_SECTORIZED_GROUP_ID_LIST             ((WifiInformationElementId)231)
+#define IE_S1G_OPERATION                        ((WifiInformationElementId)232)
+#define IE_HEADER_COMPRESSION                   ((WifiInformationElementId)233)
+#define IE_SST_OPERATION                        ((WifiInformationElementId)234)
+#define IE_MAD                                  ((WifiInformationElementId)235)
+#define IE_RELAY_ACTIVATION                     ((WifiInformationElementId)236)
 // 222 to 255 are reserved
 #define IE_HE_CAPABILITIES                      ((WifiInformationElementId)255) //todo: not defined yet in the standard!
 

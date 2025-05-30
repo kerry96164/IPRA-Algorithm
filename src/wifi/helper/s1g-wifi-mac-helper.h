@@ -21,6 +21,7 @@
 #ifndef S1G_WIFI_MAC_HELPER_H
 #define S1G_WIFI_MAC_HELPER_H
 
+#include "ns3/string.h"
 #include "wifi-helper.h"
 #include "ns3/qos-utils.h"
 #include "qos-wifi-mac-helper.h"
@@ -38,23 +39,33 @@ class S1gWifiMacHelper : public QosWifiMacHelper
 {
 public:
   /**
-   * Create a QosWifiMacHelper that is used to make life easier when working
+   * Create a S1gWifiMacHelper that is used to make life easier when working
    * with Wifi devices using a QOS MAC layer.
    */
   S1gWifiMacHelper ();
 
   /**
-   * Destroy a HtWifiMacHelper
+   * Destroy a S1gWifiMacHelper
    */
   virtual ~S1gWifiMacHelper ();
 
   /**
    * Create a mac helper in a default working state.
+   * 
+   * \returns S1gWifiMacHelper
    */
   static S1gWifiMacHelper Default (void);
+
+  /**
+   * Converts a S1G MCS value into a DataRate value
+   *
+   * \param mcs MCS Value
+   * \return data rate value (StringValue)
+   */
+  static StringValue DataRateForMcs (int mcs);
 
 };
 
 } //namespace ns3
 
-#endif /* HT_WIFI_MAC_HELPER_H */
+#endif /* S1G_WIFI_MAC_HELPER_H */

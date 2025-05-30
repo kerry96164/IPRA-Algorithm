@@ -27,7 +27,9 @@ WifiTxVector::WifiTxVector ()
   : m_retries (0),
     m_preamble (WIFI_PREAMBLE_NONE),
     m_channelWidth (20),
+    //m_channelWidth (1), //802.11ah
     m_guardInterval (800),
+    //m_guardInterval (8000), //802.11ah
     m_nTx (1),
     m_nss (1),
     m_ness (0),

@@ -29,6 +29,7 @@
 #include "wifi-tx-vector.h"
 #include "ht-capabilities.h"
 #include "vht-capabilities.h"
+#include "s1g-capabilities.h" //802.11ah
 #include "he-capabilities.h"
 
 namespace ns3 {
@@ -195,6 +196,13 @@ public:
    * \param vhtcapabilities the VHT capabilities of the station
    */
   void AddStationVhtCapabilities (Mac48Address from, VhtCapabilities vhtcapabilities);
+  /** 802.11ah
+   * Records S1G capabilities of the remote station.
+   *
+   * \param from the address of the station being recorded
+   * \param vhtcapabilities the S1G capabilities of the station
+   */
+  void AddStationS1gCapabilities (Mac48Address from, S1gCapabilities s1gcapabilities);
   /**
    * Records HE capabilities of the remote station.
    *
@@ -238,6 +246,18 @@ public:
    * \return true if VHT capability support is enabled, false otherwise
    */
   bool HasVhtSupported (void) const;
+  /** 802.11ah
+   * Enable or disable S1G capability support.
+   *
+   * \param enable enable or disable S1G capability support
+   */
+  virtual void SetS1gSupported (bool enable);
+  /** 802.11ah
+   * Return whether the device has S1G capability support enabled.
+   *
+   * \return true if S1G capability support is enabled, false otherwise
+   */
+  bool HasS1gSupported (void) const;
   /**
    * Enable or disable HE capability support.
    *
@@ -409,6 +429,33 @@ public:
    *         false otherwise
    */
   bool GetGreenfieldSupported (Mac48Address address) const;
+  /** 802.11ah
+   * Return whether the station supports S1g1Mfield or not.
+   *
+   * \param address the address of the station
+   *
+   * \return true if S1g1Mfield is supported by the station,
+   *         false otherwise
+   */
+  bool GetS1g1MfieldSupported (Mac48Address address) const;
+  /** 802.11ah
+   * Return whether the station supports S1gShortfield or not.
+   *
+   * \param address the address of the station
+   *
+   * \return true if S1gShortfield is supported by the station,
+   *         false otherwise
+   */
+  bool GetS1gShortfieldSupported (Mac48Address address) const;
+  /** 802.11ah
+   * Return whether the station supports S1gLongfield or not.
+   *
+   * \param address the address of the station
+   *
+   * \return true if S1gLongfield is supported by the station,
+   *         false otherwise
+   */
+  bool GetS1gLongfieldSupported (Mac48Address address) const;
   /**
    * Return whether the station supports short PLCP preamble or not.
    *
@@ -1497,6 +1544,7 @@ private:
   bool m_qosSupported;  //!< Flag if HT capability is supported
   bool m_htSupported;  //!< Flag if HT capability is supported
   bool m_vhtSupported; //!< Flag if VHT capability is supported
+  bool m_s1gSupported; //!< Flag if S1G capability is supported //802.11ah
   bool m_heSupported;  //!< Flag if HE capability is supported
   uint32_t m_maxSsrc;  //!< Maximum STA short retry count (SSRC)
   uint32_t m_maxSlrc;  //!< Maximum STA long retry count (SLRC)
@@ -1572,11 +1620,15 @@ struct WifiRemoteStationState
   bool m_stbc;                //!< Flag if STBC is supported by the remote station
   bool m_aggregation;         //!< Flag if MPDU aggregation is used by the remote station
   bool m_greenfield;          //!< Flag if greenfield is supported by the remote station
+  bool m_s1g1mfield;          //!< Flag if s1g1mfield is supported by the remote station //802.11ah
+  bool m_s1gshortfield;       //!< Flag if s1gshortfield is supported by the remote station //802.11ah
+  bool m_s1glongfield;        //!< Flag if s1glongfield is supported by the remote station //802.11ah
   bool m_shortPreamble;       //!< Flag if short PLCP preamble is supported by the remote station
   bool m_shortSlotTime;       //!< Flag if short ERP slot time is supported by the remote station
   bool m_qosSupported;         //!< Flag if HT is supported by the station
   bool m_htSupported;         //!< Flag if HT is supported by the station
   bool m_vhtSupported;        //!< Flag if VHT is supported by the station
+  bool m_s1gSupported;        //!< Flag if S1G is supported by the station //802.11ah
   bool m_heSupported;         //!< Flag if HE is supported by the station
 };
 

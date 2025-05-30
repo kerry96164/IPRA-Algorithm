@@ -441,7 +441,7 @@ WifiRemoteStationManager::SetupPhy (const Ptr<WifiPhy> phy)
   //acknowledgements.
   m_wifiPhy = phy;
   m_defaultTxMode = phy->GetMode (0);
-  if (HasHtSupported () || HasVhtSupported () || HasHeSupported ())
+  if (HasHtSupported () || HasVhtSupported () || HasHeSupported () || HasS1gSupported ()) //802.11ah
     {
       m_defaultTxMcs = phy->GetMcs (0);
     }
@@ -580,6 +580,18 @@ bool
 WifiRemoteStationManager::HasVhtSupported (void) const
 {
   return m_vhtSupported;
+}
+
+void
+WifiRemoteStationManager::SetS1gSupported (bool enable)
+{
+  m_s1gSupported = enable;
+}
+
+bool
+WifiRemoteStationManager::HasS1gSupported (void) const
+{
+  return m_s1gSupported;
 }
 
 void
@@ -892,6 +904,25 @@ WifiRemoteStationManager::DoGetCtsToSelfTxVector (void)
   else if (defaultMode.GetModulationClass () == WIFI_MOD_CLASS_HT)
     {
       defaultPreamble = WIFI_PREAMBLE_HT_MF;
+    }
+  else if (defaultMode.GetModulationClass () == WIFI_MOD_CLASS_S1G)
+    {
+      if (m_wifiPhy->GetS1g1Mfield () == 1)
+        {
+          defaultPreamble = WIFI_PREAMBLE_S1G_1M;
+        }
+      else if (m_wifiPhy->GetS1gShortfield () == 1)
+        {
+          defaultPreamble = WIFI_PREAMBLE_S1G_SHORT;
+        }
+      else if (m_wifiPhy->GetS1gLongfield () == 1)
+        {
+          defaultPreamble = WIFI_PREAMBLE_S1G_LONG;
+        }
+      else
+        {
+          NS_FATAL_ERROR ("Unsupported S1G mode");
+        }
     }
   else
     {
@@ -1315,6 +1346,8 @@ WifiRemoteStationManager::IsAllowedControlAnswerModulationClass (WifiModulationC
       return (modClassAnswer == WIFI_MOD_CLASS_DSSS || modClassAnswer == WIFI_MOD_CLASS_HR_DSSS || modClassAnswer == WIFI_MOD_CLASS_ERP_OFDM);
     case WIFI_MOD_CLASS_OFDM:
       return (modClassAnswer == WIFI_MOD_CLASS_OFDM);
+    case WIFI_MOD_CLASS_S1G: //802.11ah
+      return (modClassAnswer == WIFI_MOD_CLASS_S1G);
     case WIFI_MOD_CLASS_HT:
     case WIFI_MOD_CLASS_VHT:
     case WIFI_MOD_CLASS_HE:
@@ -1359,7 +1392,7 @@ WifiRemoteStationManager::GetControlAnswerMode (Mac48Address address, WifiMode r
           found = true;
         }
     }
-  if (HasHtSupported () || HasVhtSupported () || HasHeSupported ())
+  if (HasHtSupported () || HasVhtSupported () || HasHeSupported () || HasS1gSupported ()) //add 802.11ah
     {
       if (!found)
         {
@@ -1428,7 +1461,7 @@ WifiRemoteStationManager::GetControlAnswerMode (Mac48Address address, WifiMode r
           found = true;
         }
     }
-  if (HasHtSupported () || HasVhtSupported () || HasHeSupported ())
+  if (HasHtSupported () || HasVhtSupported () || HasHeSupported () || HasS1gSupported ()) //add 802.11ah
     {
       for (uint32_t idx = 0; idx < m_wifiPhy->GetNMcs (); idx++)
         {
@@ -1484,6 +1517,12 @@ WifiRemoteStationManager::GetCtsTxVector (Mac48Address address, WifiMode rtsMode
   return v;
 }
 
+/**
+ *  TODO: 802.11ah
+ * Chech rate and bandwidth for Management/control frames(Beacon, RTS, CTS, ACK)
+ * 10.7.6 Rate selection for Control frames
+ * 10.7.6.6 Channel Width selection for Control frames
+ */
 WifiTxVector
 WifiRemoteStationManager::GetAckTxVector (Mac48Address address, WifiMode dataMode)
 {
@@ -1660,6 +1699,9 @@ WifiRemoteStationManager::LookupState (Mac48Address address) const
   state->m_shortGuardInterval = m_wifiPhy->GetShortGuardInterval ();
   state->m_guardInterval = m_wifiPhy->GetGuardInterval ().GetNanoSeconds ();
   state->m_greenfield = m_wifiPhy->GetGreenfield ();
+  state->m_s1g1mfield = m_wifiPhy->GetS1g1Mfield (); //802.11ah
+  state->m_s1gshortfield = m_wifiPhy->GetS1gShortfield (); //802.11ah
+  state->m_s1glongfield = m_wifiPhy->GetS1gLongfield (); //802.11ah
   state->m_streams = 1;
   state->m_ness = 0;
   state->m_aggregation = false;
@@ -1766,6 +1808,41 @@ WifiRemoteStationManager::AddStationVhtCapabilities (Mac48Address from, VhtCapab
   state->m_vhtSupported = true;
 }
 
+void //802.11ah
+WifiRemoteStationManager::AddStationS1gCapabilities (Mac48Address from, S1gCapabilities s1gCapabilities)
+{
+  //Used by all stations to record S1G capabilities of remote stations
+  NS_LOG_FUNCTION (this << from << s1gCapabilities);
+  WifiRemoteStationState *state;
+  state = LookupState (from);
+  switch (s1gCapabilities.GetSupportedChannelWidthSet () )
+        {
+            case 0:
+                state->m_channelWidth = 2;
+                break;
+            case 1:
+                state->m_channelWidth = 4;
+                break;
+            case 2:
+                state->m_channelWidth = 8;
+                break;
+            case 3:
+                state->m_channelWidth = 16;
+                break;
+            default:
+                NS_ASSERT ("error on s1gcapabilities.GetChannelWidth ()");
+    
+        }
+
+  //This is a workaround to enable users to force a 20 or 40 MHz channel for a VHT-compliant device,
+  //since IEEE 802.11ah standard says that 1, 2, 4, 8, and 16 MHz channels are mandatory.
+  if (m_wifiPhy->GetChannelWidth () < state->m_channelWidth)
+    {
+      state->m_channelWidth = m_wifiPhy->GetChannelWidth ();
+    }
+  state->m_s1gSupported = true;
+}
+
 void
 WifiRemoteStationManager::AddStationHeCapabilities (Mac48Address from, HeCapabilities heCapabilities)
 {
@@ -1795,6 +1872,27 @@ WifiRemoteStationManager::GetGreenfieldSupported (Mac48Address address) const
   return LookupState (address)->m_greenfield;
 }
 
+bool
+WifiRemoteStationManager::GetS1g1MfieldSupported (Mac48Address address) const
+{
+  //Used by mac low to choose format
+  return LookupState (address)->m_s1g1mfield;
+}
+
+bool
+WifiRemoteStationManager::GetS1gShortfieldSupported (Mac48Address address) const
+{
+  //Used by mac low to choose format
+  return LookupState (address)->m_s1gshortfield;
+}
+
+bool
+WifiRemoteStationManager::GetS1gLongfieldSupported (Mac48Address address) const
+{
+  //Used by mac low to choose format
+  return LookupState (address)->m_s1glongfield;
+}
+
 WifiMode
 WifiRemoteStationManager::GetDefaultMode (void) const
 {
@@ -1820,7 +1918,9 @@ WifiRemoteStationManager::Reset (void)
   m_bssBasicRateSet.push_back (m_defaultTxMode);
   m_bssBasicMcsSet.clear ();
   m_bssBasicMcsSet.push_back (m_defaultTxMcs);
-  NS_ASSERT (m_defaultTxMode.IsMandatory ());
+  NS_ABORT_MSG_IF (!m_defaultTxMode.IsMandatory (),
+                 "DefaultTxMode is not mandatory! Mode: " << m_defaultTxMode.GetUniqueName ());
+  //NS_ASSERT (m_defaultTxMode.IsMandatory ());
 }
 
 void
@@ -2181,6 +2281,26 @@ WifiRemoteStationManager::GetPreambleForTransmission (WifiMode mode, Mac48Addres
   else if (mode.GetModulationClass () == WIFI_MOD_CLASS_VHT)
     {
       preamble = WIFI_PREAMBLE_VHT;
+    }
+  else if (mode.GetModulationClass () == WIFI_MOD_CLASS_S1G) //802.11ah
+    {
+      if (GetS1g1MfieldSupported (dest) && m_wifiPhy->GetS1g1Mfield ())
+        {
+          preamble = WIFI_PREAMBLE_S1G_1M;
+        }
+      else if (GetS1gShortfieldSupported (dest) && m_wifiPhy->GetS1gShortfield ())
+        {
+          preamble = WIFI_PREAMBLE_S1G_SHORT;
+        }
+      else if (GetS1gLongfieldSupported (dest) && m_wifiPhy->GetS1gLongfield ())
+        {
+          preamble = WIFI_PREAMBLE_S1G_LONG;
+        }
+      else
+        {
+          NS_FATAL_ERROR ("Unsupported S1G mode");
+        }
+      
     }
   else if (mode.GetModulationClass () == WIFI_MOD_CLASS_HT && m_wifiPhy->GetGreenfield () && GetGreenfieldSupported (dest) && !GetUseGreenfieldProtection ())
     {
