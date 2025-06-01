@@ -1001,6 +1001,7 @@ WifiRemoteStationManager::ReportDataOk (Mac48Address address, const WifiMacHeade
   WifiRemoteStation *station = Lookup (address, header);
   station->m_state->m_info.NotifyTxSuccess (station->m_slrc);
   station->m_slrc = 0;
+
   DoReportDataOk (station, ackSnr, ackMode, dataSnr);
 }
 
@@ -2206,6 +2207,12 @@ bool
 WifiRemoteStationManager::GetVhtSupported (const WifiRemoteStation *station) const
 {
   return station->m_state->m_vhtSupported;
+}
+
+bool
+WifiRemoteStationManager::GetS1gSupported (const WifiRemoteStation *station) const
+{
+  return station->m_state->m_s1gSupported;
 }
 
 bool

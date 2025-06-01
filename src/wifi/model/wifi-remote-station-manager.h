@@ -978,6 +978,15 @@ protected:
    */
   bool GetVhtSupported (const WifiRemoteStation *station) const;
   /**
+   * Return whether the given station is S1G capable.
+   *
+   * \param station the station being queried
+   *
+   * \return true if the station has S1G capabilities,
+   *         false otherwise
+   */
+  bool GetS1gSupported (const WifiRemoteStation *station) const;
+  /**
    * Return whether the given station is HE capable.
    *
    * \param station the station being queried
