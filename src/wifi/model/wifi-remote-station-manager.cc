@@ -1043,6 +1043,14 @@ WifiRemoteStationManager::ReportRxOk (Mac48Address address, const WifiMacHeader 
 }
 
 void
+WifiRemoteStationManager::SetLastSnrObserved (Mac48Address address, double dataSnr)
+{
+  NS_LOG_FUNCTION (this << address << dataSnr);
+  WifiRemoteStation *station = Lookup (address, static_cast<uint8_t>(0));
+  DoSetLastSnrObserved (station, dataSnr);
+}
+
+void
 WifiRemoteStationManager::ReportAmpduTxStatus (Mac48Address address, uint8_t tid,
                                                uint8_t nSuccessfulMpdus, uint8_t nFailedMpdus,
                                                double rxSnr, double dataSnr)
@@ -2063,6 +2071,12 @@ void
 WifiRemoteStationManager::DoReportAmpduTxStatus (WifiRemoteStation *station, uint8_t nSuccessfulMpdus, uint8_t nFailedMpdus, double rxSnr, double dataSnr)
 {
   NS_LOG_DEBUG ("DoReportAmpduTxStatus received but the manager does not handle A-MPDUs!");
+}
+
+void
+WifiRemoteStationManager::DoSetLastSnrObserved (WifiRemoteStation *station, double dataSnr)
+{
+  NS_LOG_DEBUG ("DoSetLastSnrObserved received but the manager does not handle this function!");
 }
 
 WifiMode

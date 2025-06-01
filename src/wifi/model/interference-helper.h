@@ -206,7 +206,17 @@ private:
    * Erase all events.
    */
   void EraseEvents (void);
-
+  
+  /**
+   * \brief Calculates the latest total interference power.
+   *
+   * This method calculates the sum of power from all interfering signals
+   * registered with the helper up to the current simulation time.
+   * It does not include the receiver's own thermal noise floor.
+   *
+   * \return The latest total interference power in Watts.
+   */
+  double GetLatestTotalInterferencePowerW (void) const;
 
 private:
   /**

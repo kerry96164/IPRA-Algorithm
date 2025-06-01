@@ -785,6 +785,15 @@ public:
                    double rxSnr, WifiMode txMode);
 
   /**
+   * This method is a virtual method that be implemented by the IPRA.
+   * It is used to set the last observed SNR for a station.
+   * 
+   * \param address remote address
+   * \param dataSnr the last observed SNR for the station
+   */
+  void SetLastSnrObserved (Mac48Address address, double dataSnr);
+
+  /**
    * \param address remote address
    * \param header MAC header
    * \param packet the packet to send
@@ -1418,6 +1427,14 @@ private:
    */
   virtual void DoReportRxOk (WifiRemoteStation *station,
                              double rxSnr, WifiMode txMode) = 0;
+  /**
+   * This method is a virtual method that be implemented by the IPRA sub-class.
+   * It is used to set the last observed SNR for a station.
+   *
+   * \param station the station that we sent the DATA to 
+   * \param dataSnr the last observed SNR for the station
+   */
+  virtual void DoSetLastSnrObserved (WifiRemoteStation *station, double dataSnr);
   /**
    * Typically called per A-MPDU, either when a Block ACK was successfully received
    * or when a BlockAckTimeout has elapsed. This method is a virtual method that must

@@ -371,6 +371,12 @@ public:
   uint8_t GetAddressRegisterSize();///////liang
   std::vector<Transmitpower> txpowerlist;
   std::map<Mac48Address, Position> positionlist; // Jonathan
+
+  /**
+   * \return the InterferenceHelper object associated with this PHY.
+   */
+  InterferenceHelper GetInterference (void) const;
+
   /**
    * Put in sleep mode.
    */

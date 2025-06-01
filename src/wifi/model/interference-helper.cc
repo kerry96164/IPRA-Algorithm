@@ -300,6 +300,31 @@ InterferenceHelper::CalculateNoiseInterferenceW (Ptr<InterferenceHelper::Event> 
 }
 
 double
+InterferenceHelper::GetLatestTotalInterferencePowerW (void) const
+{
+  Time now = Simulator::Now ();
+  double totalInterferenceW = m_firstPower; // 從基準干擾功率開始
+
+  // 遍歷 m_niChanges 列表，這個列表儲存了按時間排序的干擾功率變化事件
+  for (const auto& change : m_niChanges)
+    {
+      // 如果該變化事件的發生時間早於或等於當前模擬時間
+      if (change.GetTime () <= now)
+        {
+          // 將此變化量累加到總干擾功率上
+          totalInterferenceW += change.GetDelta ();
+        }
+      else
+        {
+          // 因為 m_niChanges 是按時間排序的，
+          // 一旦遇到時間晚於當前模擬時間的事件，就可以停止遍歷
+          break;
+        }
+    }
+  return totalInterferenceW;
+}
+
+double
 InterferenceHelper::CalculateChunkSuccessRate (double snir, Time duration, WifiMode mode, WifiTxVector txVector) const
 {
   if (duration.IsZero ())

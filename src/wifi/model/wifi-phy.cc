@@ -611,6 +611,12 @@ WifiPhy::GetCcaMode1Threshold (void) const
   return WToDbm (m_ccaMode1ThresholdW);
 }
 
+InterferenceHelper
+WifiPhy::GetInterference (void) const
+{
+  return m_interference;
+}
+
 void
 WifiPhy::SetRxNoiseFigure (double noiseFigureDb)
 {
@@ -5724,9 +5730,12 @@ WifiPhy::AbortCurrentReception ()
 double////liang
 WifiPhy::GetSNR(double rxPowerW, uint8_t channelWidth)
 {
+  //thermal noise at 290K in J/s = W
   static const double BOLTZMANN = 1.3803e-23;
+  //Nt is the power of thermal noise in W
   double Nt = BOLTZMANN * 290.0 * channelWidth * 1000000;
   double m_noiseFigure = 5.01187;
+  //receiver noise Floor (W) which accounts for thermal noise and non-idealities of the receiver
   double noiseFloor = m_noiseFigure * Nt;
   double noiseInterference = this->GetOthersTxpowerW() - rxPowerW;
   double noise = noiseFloor + noiseInterference;

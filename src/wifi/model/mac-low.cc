@@ -993,168 +993,137 @@ MacLow::StartTransmission (Ptr<const Packet> packet,
   ///std::cout<<" node "<<GetPhy()->GetDevice()->GetNode ()->GetId ()<<" startransmission at "<<Simulator::Now().GetMicroSeconds()<<" ";
   double now = Simulator::Now().GetSeconds();  
   double txpower = FindTxpower(hdr);
-  WifiMode rate= WifiPhy::GetVhtMcs2 ();
 
   if((now > TIME) && m_phy->GetDevice()->GetIfIndex()==0 && txpower<0.03)
   {
-      m_currentDca = dca;
-      m_txpower = 0.04;
-      ChannelBusy();
+    m_currentDca = dca;
+    m_txpower = 0.04;
+    ChannelBusy();
   }
   else
   {
-    if( (now > TIME) && m_phy->GetDevice()->GetIfIndex()==0 && txpower>=0.03  && txpower<=0.035)
-    {
-      //std::cout<<"0\n";
-      rate =WifiPhy::GetVhtMcs1 ();
-    }
-    else if( (now > TIME) && m_phy->GetDevice()->GetIfIndex()==0 && txpower>0.035  && txpower<=0.04)
-    {
-      //std::cout<<"1\n";
-      rate =WifiPhy::GetVhtMcs2 ();
-    }
-    else if( (now > TIME) && m_phy->GetDevice()->GetIfIndex()==0 && txpower>=0.04  && txpower<=0.08)
-    {
-      //std::cout<<"2\n";
-      rate =WifiPhy::GetVhtMcs2 ();
-    }
-    else if((now > TIME) && m_phy->GetDevice()->GetIfIndex()==0 && txpower>0.08 && txpower<=0.09)
-    {
-      //std::cout<<"3\n";
-      rate = WifiPhy::GetVhtMcs2 ();
-    }
-    else if((now > TIME) && m_phy->GetDevice()->GetIfIndex()==0 && txpower>0.09)
-    {
-      //std::cout<<"3\n";
-      rate = WifiPhy::GetVhtMcs2 ();
-    }
+    NS_LOG_FUNCTION (this << packet << hdr << params << dca);
+    /**
+     * m_currentPacket is not NULL because someone started    
+     * a transmission and was interrupted before one of:
+     *   - ctsTimeout
+     *   - sendDataAfterCTS
+     * expired. This means that one of these timers is still
+     * running. They are all cancelled below anyway by the
+     * call to CancelAllEvents (because of at least one
+     * of these two timers) which will trigger a call to the
+     * previous listener's cancel method.
+     *
+     * This typically happens because the high-priority
+     * QapScheduler has taken access to the channel from
+     * one of the Edca of the QAP.
+     */
+    m_currentPacket = packet->Copy();
+    // remove the priority tag attached, if any
+    SocketPriorityTag priorityTag;
+    m_currentPacket->RemovePacketTag (priorityTag);
+    m_currentHdr = *hdr;
+    CancelAllEvents ();
+    m_currentDca = dca;
+    m_txParams = params;
+    m_currentTxVector = GetDataTxVector (m_currentPacket, &m_currentHdr);
+    //std::cout<<m_currentRate<<std::endl;
+    //m_currentTxVector.SetMode(rate);//////here
+    //m_currentTxVector = GetDataTxVector (m_currentPacket, &m_currentHdr);
+    //std::cout<<m_currentTxVector.GetMode()<<std::endl;
+    if (NeedRts ())
+      {
+        m_txParams.EnableRts ();
+      }
+    else
+      {
+        m_txParams.DisableRts ();
+      }
 
-    Ptr<ConstantRateWifiManager> constantmanager = m_stationManager->GetObject<ConstantRateWifiManager>(); 
-    //rate = WifiPhy::GetVhtMcs2 ();
-    //else
-    //{
-      NS_LOG_FUNCTION (this << packet << hdr << params << dca);
-      /* m_currentPacket is not NULL because someone started
-      * a transmission and was interrupted before one of:
-      *   - ctsTimeout
-      *   - sendDataAfterCTS
-      * expired. This means that one of these timers is still
-      * running. They are all cancelled below anyway by the
-      * call to CancelAllEvents (because of at least one
-      * of these two timers) which will trigger a call to the
-      * previous listener's cancel method.
-      *
-      * This typically happens because the high-priority
-      * QapScheduler has taken access to the channel from
-      * one of the Edca of the QAP.
-      */
-      m_currentPacket = packet->Copy();
-      // remove the priority tag attached, if any
-      SocketPriorityTag priorityTag;
-      m_currentPacket->RemovePacketTag (priorityTag);
-      m_currentHdr = *hdr;
-      CancelAllEvents ();
-      m_currentDca = dca;
-      m_txParams = params;
-      constantmanager->Setmode(rate);
-      m_currentTxVector = GetDataTxVector (m_currentPacket, &m_currentHdr);
-      //std::cout<<m_currentRate<<std::endl;
-      //m_currentTxVector.SetMode(rate);//////here
-      //m_currentTxVector = GetDataTxVector (m_currentPacket, &m_currentHdr);
-      //std::cout<<m_currentTxVector.GetMode()<<std::endl;
-      if (NeedRts ())
-        {
-          m_txParams.EnableRts ();
-        }
-      else
-        {
-          m_txParams.DisableRts ();
-        }
+    if (m_currentHdr.IsMgt ()
+        || (!m_currentHdr.IsQosData ()
+            && !m_currentHdr.IsBlockAck ()
+            && !m_currentHdr.IsBlockAckReq ()))
+      {
+        //This is mainly encountered when a higher priority control or management frame is
+        //sent between A-MPDU transmissions. It avoids to unexpectedly flush the aggregate
+        //queue when previous RTS request has failed.
+        m_ampdu = false;
+      }
+    else if (m_currentHdr.IsQosData () && !m_aggregateQueue[GetTid (packet, *hdr)]->IsEmpty ())
+      {
+        //m_aggregateQueue > 0 occurs when a RTS/CTS exchange failed before an A-MPDU transmission.
+        //In that case, we transmit the same A-MPDU as previously.
+        uint8_t sentMpdus = m_aggregateQueue[GetTid (packet, *hdr)]->GetNPackets ();
+        m_ampdu = true;
+        if (sentMpdus > 1)
+          {
+            m_txParams.EnableCompressedBlockAck ();
+          }
+        else if (m_currentHdr.IsQosData ())
+          {
+            //VHT/HE single MPDUs are followed by normal ACKs
+            m_txParams.EnableAck ();
+          }
 
-      if (m_currentHdr.IsMgt ()
-          || (!m_currentHdr.IsQosData ()
-              && !m_currentHdr.IsBlockAck ()
-              && !m_currentHdr.IsBlockAckReq ()))
-        {
-          //This is mainly encountered when a higher priority control or management frame is
-          //sent between A-MPDU transmissions. It avoids to unexpectedly flush the aggregate
-          //queue when previous RTS request has failed.
-          m_ampdu = false;
-        }
-      else if (m_currentHdr.IsQosData () && !m_aggregateQueue[GetTid (packet, *hdr)]->IsEmpty ())
-        {
-          //m_aggregateQueue > 0 occurs when a RTS/CTS exchange failed before an A-MPDU transmission.
-          //In that case, we transmit the same A-MPDU as previously.
-          uint8_t sentMpdus = m_aggregateQueue[GetTid (packet, *hdr)]->GetNPackets ();
-          m_ampdu = true;
-          if (sentMpdus > 1)
-            {
-              m_txParams.EnableCompressedBlockAck ();
-            }
-          else if (m_currentHdr.IsQosData ())
-            {
-              //VHT/HE single MPDUs are followed by normal ACKs
-              m_txParams.EnableAck ();
-            }
+        AcIndex ac = QosUtilsMapTidToAc (GetTid (packet, *hdr));
+        std::map<AcIndex, Ptr<EdcaTxopN> >::const_iterator edcaIt = m_edca.find (ac);
+        Ptr<Packet> aggregatedPacket = Create<Packet> ();
 
-          AcIndex ac = QosUtilsMapTidToAc (GetTid (packet, *hdr));
-          std::map<AcIndex, Ptr<EdcaTxopN> >::const_iterator edcaIt = m_edca.find (ac);
-          Ptr<Packet> aggregatedPacket = Create<Packet> ();
+        for (uint32_t i = 0; i < sentMpdus; i++)
+          {
+            Ptr<Packet> newPacket = (m_txPackets[GetTid (packet, *hdr)].at (i).packet)->Copy ();
+            newPacket->AddHeader (m_txPackets[GetTid (packet, *hdr)].at (i).hdr);
+            AddWifiMacTrailer (newPacket);
+            edcaIt->second->GetMpduAggregator ()->Aggregate (newPacket, aggregatedPacket);
+          }
+        m_currentPacket = aggregatedPacket;
+        m_currentHdr = (m_txPackets[GetTid (packet, *hdr)].at (0).hdr);
+        m_currentTxVector = GetDataTxVector (m_currentPacket, &m_currentHdr);
+      }
+    else
+      {
 
-          for (uint32_t i = 0; i < sentMpdus; i++)
-            {
-              Ptr<Packet> newPacket = (m_txPackets[GetTid (packet, *hdr)].at (i).packet)->Copy ();
-              newPacket->AddHeader (m_txPackets[GetTid (packet, *hdr)].at (i).hdr);
-              AddWifiMacTrailer (newPacket);
-              edcaIt->second->GetMpduAggregator ()->Aggregate (newPacket, aggregatedPacket);
-            }
-          m_currentPacket = aggregatedPacket;
-          m_currentHdr = (m_txPackets[GetTid (packet, *hdr)].at (0).hdr);
-          m_currentTxVector = GetDataTxVector (m_currentPacket, &m_currentHdr);
-        }
-      else
-        {
+        //Perform MPDU aggregation if possible
+        m_ampdu = IsAmpdu (m_currentPacket, m_currentHdr);
+        if (m_ampdu)
+          {
+            AmpduTag ampdu;
+            m_currentPacket->PeekPacketTag (ampdu);
+            if (ampdu.GetRemainingNbOfMpdus () > 0)
+              {
+                m_txParams.EnableCompressedBlockAck ();
+              }
+            else if (m_currentHdr.IsQosData ())
+              {
+                //VHT/HE single MPDUs are followed by normal ACKs
+                m_txParams.EnableAck ();
+              }
+          }
+      }
 
-          //Perform MPDU aggregation if possible
-          m_ampdu = IsAmpdu (m_currentPacket, m_currentHdr);
-          if (m_ampdu)
-            {
-              AmpduTag ampdu;
-              m_currentPacket->PeekPacketTag (ampdu);
-              if (ampdu.GetRemainingNbOfMpdus () > 0)
-                {
-                  m_txParams.EnableCompressedBlockAck ();
-                }
-              else if (m_currentHdr.IsQosData ())
-                {
-                  //VHT/HE single MPDUs are followed by normal ACKs
-                  m_txParams.EnableAck ();
-                }
-            }
-        }
-
-      NS_LOG_DEBUG ("startTx size=" << GetSize (m_currentPacket, &m_currentHdr, m_ampdu) <<
-                    ", to=" << m_currentHdr.GetAddr1 () << ", dca=" << m_currentDca);
-      
-      if (m_txParams.MustSendRts ())
-        {
-          SendRtsForPacket ();///////////////
-        }
-      else
-        { 
-                    if((m_ctsToSelfSupported||m_stationManager->GetUseNonErpProtection()) && NeedCtsToSelf())
-                    {
-                    SendCtsToSelf();
-                    }
-                    else
-                    {
-                    SendDataPacket ();/////////////////////////liang
-                    
-                    }
-      
-        }
-      NS_ASSERT (m_phy->IsStateTx ());
-      /* When this method completes, we have taken ownership of the medium. */
+    NS_LOG_DEBUG ("startTx size=" << GetSize (m_currentPacket, &m_currentHdr, m_ampdu) <<
+                  ", to=" << m_currentHdr.GetAddr1 () << ", dca=" << m_currentDca);
+    
+    if (m_txParams.MustSendRts ())
+      {
+        SendRtsForPacket ();///////////////
+      }
+    else
+      { 
+                  if((m_ctsToSelfSupported||m_stationManager->GetUseNonErpProtection()) && NeedCtsToSelf())
+                  {
+                  SendCtsToSelf();
+                  }
+                  else
+                  {
+                  SendDataPacket ();/////////////////////////liang
+                  
+                  }
+    
+      }
+    NS_ASSERT (m_phy->IsStateTx ());
+    /* When this method completes, we have taken ownership of the medium. */
   }
 }
 
@@ -2056,11 +2025,21 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
       double distance = GetDistanceFromTable(hdr->GetAddr1 ());
       if(distance > 0)
       {
-        // m_exponent= 3 ,m_referenceloss= 46.6777 ,m_referenceDistance= 1
-        double pathLossDb = 10 * 3 * std::log10 (distance);
-        double rxc = -46.6777 - pathLossDb;
-        double rxpowerDbm = WToDbm(txpower) + rxc;
-        // NS_LOG_UNCOND("rxpower(dBm)= " << rxpowerDbm);
+        // m_exponent= 3.76 ,m_referenceloss= 23.3 ,m_referenceDistance= 1
+        // from https://ieeexplore.ieee.org/document/6477839 Pico/Hot Zone Deployment
+        double pathLossDb = 23.3 + 10 * 3.76 * std::log10 (distance);
+        double rxpowerDbm = WToDbm(txpower) - pathLossDb;
+
+        // Interference
+        InterferenceHelper interferenceHelper  = m_phy->GetInterference();
+        double interferencePowerW = interferenceHelper.GetLatestTotalInterferencePowerW ();
+        double interferencePowerDbm = WToDbm(interferencePowerW);
+        // NS_LOG_UNCOND("rxpower(dBm)= " << rxpowerDbm << "interferencePower(dBm)= " << interferencePowerDbm);
+
+        m_stationManager->SetLastSnrObserved (hdr->GetAddr1 (), DbmToW(rxpowerDbm - interferencePowerDbm)); //告知IPRA推測的rx snr
+        txVector = GetDataTxVector (packet, hdr);// 重新獲取txvector，因為txpower可能改變了
+
+        
         if(rxpowerDbm < -82.0)
         {
           IsEnough = false;
@@ -2069,8 +2048,6 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
       // bool IsEnough = InspectTxpower(distance, txpower); // calculate the rxpower
       // NS_LOG_UNCOND("IsEnough " << IsEnough);
     }
-
-
 
 
     if(!IsEnough)
