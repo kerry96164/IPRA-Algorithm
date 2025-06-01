@@ -96,7 +96,7 @@ private:
 
   /**
    * Convenience function for selecting a channel width for legacy mode
-   * \param mode non-(V)HT WifiMode
+   * \param mode non-(V)HT/S1G WifiMode
    * \return the channel width (MHz) for the selected mode
    */
   uint8_t GetChannelWidthForMode (WifiMode mode) const;
