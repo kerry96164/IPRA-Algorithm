@@ -26,7 +26,7 @@
 #include <string>
 #include <algorithm>
 
-#define numNodePairs 1 // number of node pairs
+#define numNodePairs 10 // number of node pairs
 
 using namespace ns3;
 
@@ -43,7 +43,7 @@ double distance=500; // x space between 2 node-pair
 // Jonathan
 uint32_t numNodes = 2 * numNodePairs; // number of nodes
 
-int PacketSize = 100; // bytes
+int PacketSize = 256; // bytes
 double  TotalSimulationTime_sec = 10; // seconds
 
 NS_LOG_COMPONENT_DEFINE ("Simulation");
@@ -123,8 +123,8 @@ void runthesimulation()
   WifiHelper wifi;
 
   wifi.SetStandard (WIFI_PHY_STANDARD_80211ah);
-  StringValue DataRate = S1gWifiMacHelper::DataRateForMcs (8);
-  // wifi.SetRemoteStationManager( "ns3::IdealWifiManager" );
+  StringValue DataRate = S1gWifiMacHelper::DataRateForMcs (5);
+  //wifi.SetRemoteStationManager( "ns3::IdealWifiManager" );
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                   "DataMode", /*StringValue*/DataRate,
                                   "ControlMode", /*StringValue*/DataRate);
@@ -157,6 +157,7 @@ void runthesimulation()
   wifiMac.SetType ("ns3::AdhocWifiMac");
   wifiMac2.SetType ("ns3::AdhocWifiMac");
   NetDeviceContainer devices = wifi.Install (wifiPhy, wifiMac, container);
+  wifiPhy2.Set("ChannelNumber",UintegerValue (39));
   NetDeviceContainer devices2 = wifi.Install (wifiPhy2, wifiMac2 , container);
 
   //Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/Slot", TimeValue (MicroSeconds (0.0)));
@@ -170,7 +171,7 @@ void runthesimulation()
   std::cout << "Data ch. Freq: " << int(phySta->GetFrequency ()) << std::endl;
   std::cout << "Data ch. Freq: " << int(phySta2->GetFrequency ()) << std::endl;
   std::cout << "ChannelWidth: " << int(phySta->GetChannelWidth()) << "\nGI: " << (phySta->GetShortGuardInterval()? 4000:8000) << "ns" << std::endl;
-  std::cout << "Data rate: " << DataRate.Get() << std::endl;
+  //std::cout << "Data rate: " << DataRate.Get() << std::endl;
   // Note that with FixedRssLossModel, the positions below are not
   // used for received signal strength.
 
@@ -181,24 +182,24 @@ void runthesimulation()
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (0.0, 0.0, 0.0));
   positionAlloc->Add (Vector (xspace, 0.0, 0.0));
-  // positionAlloc->Add (Vector (xspace+distance, 0.0, 0.0));
-  // positionAlloc->Add (Vector (2*xspace+distance ,0.0, 0.0));
-  // positionAlloc->Add (Vector (0.0, yspace, 0.0));
-  // positionAlloc->Add (Vector (xspace, yspace, 0.0));
-  // positionAlloc->Add (Vector (xspace+distance,yspace, 0.0));
-  // positionAlloc->Add (Vector (2*xspace+distance, yspace, 0.0));
-  // positionAlloc->Add (Vector (0.0, 2*yspace, 0.0));
-  // positionAlloc->Add (Vector (xspace, 2*yspace, 0.0));
-  // positionAlloc->Add (Vector (xspace+distance, 2*yspace, 0.0));
-  // positionAlloc->Add (Vector (2*xspace+distance, 2*yspace, 0.0));
-  // positionAlloc->Add (Vector (0.0, 3*yspace, 0.0));
-  // positionAlloc->Add (Vector (xspace, 3*yspace, 0.0));
-  // positionAlloc->Add (Vector (xspace+distance, 3*yspace, 0.0));
-  // positionAlloc->Add (Vector (2*xspace+distance,3*yspace, 0.0));
-  // positionAlloc->Add (Vector (0.0, 4*yspace, 0.0));
-  // positionAlloc->Add (Vector (xspace, 4*yspace, 0.0));
-  // positionAlloc->Add (Vector (xspace+distance, 4*yspace, 0.0));
-  // positionAlloc->Add (Vector (2*xspace+distance,4*yspace, 0.0));
+  positionAlloc->Add (Vector (xspace+distance, 0.0, 0.0));
+  positionAlloc->Add (Vector (2*xspace+distance ,0.0, 0.0));
+  positionAlloc->Add (Vector (0.0, yspace, 0.0));
+  positionAlloc->Add (Vector (xspace, yspace, 0.0));
+  positionAlloc->Add (Vector (xspace+distance,yspace, 0.0));
+  positionAlloc->Add (Vector (2*xspace+distance, yspace, 0.0));
+  positionAlloc->Add (Vector (0.0, 2*yspace, 0.0));
+  positionAlloc->Add (Vector (xspace, 2*yspace, 0.0));
+  positionAlloc->Add (Vector (xspace+distance, 2*yspace, 0.0));
+  positionAlloc->Add (Vector (2*xspace+distance, 2*yspace, 0.0));
+  positionAlloc->Add (Vector (0.0, 3*yspace, 0.0));
+  positionAlloc->Add (Vector (xspace, 3*yspace, 0.0));
+  positionAlloc->Add (Vector (xspace+distance, 3*yspace, 0.0));
+  positionAlloc->Add (Vector (2*xspace+distance,3*yspace, 0.0));
+  positionAlloc->Add (Vector (0.0, 4*yspace, 0.0));
+  positionAlloc->Add (Vector (xspace, 4*yspace, 0.0));
+  positionAlloc->Add (Vector (xspace+distance, 4*yspace, 0.0));
+  positionAlloc->Add (Vector (2*xspace+distance,4*yspace, 0.0));
   mobility.SetPositionAllocator (positionAlloc);
   /*----------------------------------------------- */
 
@@ -242,29 +243,31 @@ void runthesimulation()
   /*----------------------------------------------- */   
   if(hidden == 1)
   {
-    // cbrApps.Add(gencbr(c.Get (1),c.Get (0),i.GetAddress (1),TotalSimulationTime_sec,a[0],0.1));
-    // cbrApps.Add(gencbr(c.Get (3),c.Get (2),i.GetAddress (3),TotalSimulationTime_sec,a[1],0.2));
-    // cbrApps.Add(gencbr(c.Get (5),c.Get (4),i.GetAddress (5),TotalSimulationTime_sec,a[2],0.3));
-    // cbrApps.Add(gencbr(c.Get (7),c.Get (6),i.GetAddress (7),TotalSimulationTime_sec,a[3],0.4));
-    // cbrApps.Add(gencbr(c.Get (9),c.Get (8),i.GetAddress (9),TotalSimulationTime_sec,a[4],0.5));
-    // cbrApps.Add(gencbr(c.Get (11),c.Get (10),i.GetAddress (11),TotalSimulationTime_sec,a[5],0.6));
-    // cbrApps.Add(gencbr(c.Get (13),c.Get (12),i.GetAddress (13),TotalSimulationTime_sec,a[6],0.7));
-    // cbrApps.Add(gencbr(c.Get (15),c.Get (14),i.GetAddress (15),TotalSimulationTime_sec,a[7],0.8));
-    // cbrApps.Add(gencbr(c.Get (17),c.Get (16),i.GetAddress (17),TotalSimulationTime_sec,a[8],0.9));
-    // cbrApps.Add(gencbr(c.Get (19),c.Get (18),i.GetAddress (19),TotalSimulationTime_sec,a[9],1.0));
+    std::cout << "Hidden terminal scenario" << std::endl;
+    cbrApps.Add(gencbr(container.Get (1), container.Get (0), interfaces.GetAddress (1), TotalSimulationTime_sec, a[0],0.1));
+    cbrApps.Add(gencbr(container.Get (3), container.Get (2), interfaces.GetAddress (3), TotalSimulationTime_sec, a[1],0.2));
+    cbrApps.Add(gencbr(container.Get (5), container.Get (4), interfaces.GetAddress (5), TotalSimulationTime_sec, a[2],0.3));
+    cbrApps.Add(gencbr(container.Get (7), container.Get (6), interfaces.GetAddress (7), TotalSimulationTime_sec, a[3],0.4));
+    cbrApps.Add(gencbr(container.Get (9), container.Get (8), interfaces.GetAddress (9), TotalSimulationTime_sec, a[4],0.5));
+    cbrApps.Add(gencbr(container.Get (11),container.Get (10),interfaces.GetAddress (11),TotalSimulationTime_sec, a[5],0.6));
+    cbrApps.Add(gencbr(container.Get (13),container.Get (12),interfaces.GetAddress (13),TotalSimulationTime_sec, a[6],0.7));
+    cbrApps.Add(gencbr(container.Get (15),container.Get (14),interfaces.GetAddress (15),TotalSimulationTime_sec, a[7],0.8));
+    cbrApps.Add(gencbr(container.Get (17),container.Get (16),interfaces.GetAddress (17),TotalSimulationTime_sec, a[8],0.9));
+    cbrApps.Add(gencbr(container.Get (19),container.Get (18),interfaces.GetAddress (19),TotalSimulationTime_sec, a[9],1.0));
   }
   else
   {
-    cbrApps.Add(gencbr(container.Get(0), container.Get(1), interfaces.GetAddress(0), TotalSimulationTime_sec, a[0], 0.1));
-    // cbrApps.Add(gencbr(c.Get (3),c.Get (2),i.GetAddress (3),TotalSimulationTime_sec,a[1],0.2));
-    // cbrApps.Add(gencbr(c.Get (4),c.Get (5),i.GetAddress (4),TotalSimulationTime_sec,a[2],0.3));
-    // cbrApps.Add(gencbr(c.Get (7),c.Get (6),i.GetAddress (7),TotalSimulationTime_sec,a[3],0.4));
-    // cbrApps.Add(gencbr(c.Get (8),c.Get (9),i.GetAddress (8),TotalSimulationTime_sec,a[4],0.5));
-    // cbrApps.Add(gencbr(c.Get (11),c.Get (10),i.GetAddress (11),TotalSimulationTime_sec,a[5],0.6));
-    // cbrApps.Add(gencbr(c.Get (12),c.Get (13),i.GetAddress (12),TotalSimulationTime_sec,a[6],0.7));
-    // cbrApps.Add(gencbr(c.Get (15),c.Get (14),i.GetAddress (15),TotalSimulationTime_sec,a[7],0.8));
-    // cbrApps.Add(gencbr(c.Get (16),c.Get (17),i.GetAddress (16),TotalSimulationTime_sec,a[8],0.9));
-    // cbrApps.Add(gencbr(c.Get (19),c.Get (18),i.GetAddress (19),TotalSimulationTime_sec,a[9],1.0));
+    std::cout << "Exposed terminal scenario" << std::endl;
+    cbrApps.Add(gencbr(container.Get (0), container.Get (1), interfaces.GetAddress (0), TotalSimulationTime_sec, a[0],0.1));
+    cbrApps.Add(gencbr(container.Get (3), container.Get (2), interfaces.GetAddress (3), TotalSimulationTime_sec, a[1],0.2));
+    // cbrApps.Add(gencbr(container.Get (4), container.Get (5), interfaces.GetAddress (4), TotalSimulationTime_sec, a[2],0.3));
+    // cbrApps.Add(gencbr(container.Get (7), container.Get (6), interfaces.GetAddress (7), TotalSimulationTime_sec, a[3],0.4));
+    // cbrApps.Add(gencbr(container.Get (8), container.Get (9), interfaces.GetAddress (8), TotalSimulationTime_sec, a[4],0.5));
+    // cbrApps.Add(gencbr(container.Get (11),container.Get (10),interfaces.GetAddress (11),TotalSimulationTime_sec, a[5],0.6));
+    // cbrApps.Add(gencbr(container.Get (12),container.Get (13),interfaces.GetAddress (12),TotalSimulationTime_sec, a[6],0.7));
+    // cbrApps.Add(gencbr(container.Get (15),container.Get (14),interfaces.GetAddress (15),TotalSimulationTime_sec, a[7],0.8));
+    // cbrApps.Add(gencbr(container.Get (16),container.Get (17),interfaces.GetAddress (16),TotalSimulationTime_sec, a[8],0.9));
+    // cbrApps.Add(gencbr(container.Get (19),container.Get (18),interfaces.GetAddress (19),TotalSimulationTime_sec, a[9],1.0));
   }
   /*----------------------------------------------- */ 
 

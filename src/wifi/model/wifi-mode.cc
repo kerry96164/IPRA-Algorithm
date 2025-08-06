@@ -386,7 +386,7 @@ WifiMode::GetDataRate (uint8_t channelWidth, uint16_t guardInterval, uint8_t nss
       NS_ASSERT ("undefined datarate for the modulation class!");
     }
   dataRate *= nss; // number of spatial streams
-  std::cout<<"dataRate = "<<dataRate<< " = " << symbolRate << " * " << usableSubCarriers << " * " << numberOfBitsPerSubcarrier << " * " << codingRate << std::endl; //kerry test
+  //std::cout<<"dataRate = "<<dataRate<< " = " << symbolRate << " * " << usableSubCarriers << " * " << numberOfBitsPerSubcarrier << " * " << codingRate << std::endl; //kerry test
   return dataRate;
 }
 

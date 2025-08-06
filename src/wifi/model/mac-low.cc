@@ -2040,10 +2040,10 @@ MacLow::ForwardDown (Ptr<const Packet> packet, const WifiMacHeader* hdr, WifiTxV
         txVector = GetDataTxVector (packet, hdr);// 重新獲取txvector，因為txpower可能改變了
 
         
-        if(rxpowerDbm < -82.0)
-        {
-          IsEnough = false;
-        }  
+        // if(rxpowerDbm < -82.0)
+        // {
+        //   IsEnough = false;
+        // }  
       }
       // bool IsEnough = InspectTxpower(distance, txpower); // calculate the rxpower
       // NS_LOG_UNCOND("IsEnough " << IsEnough);
